@@ -68,24 +68,14 @@ window.__ModuleLoader__.load({
     }
 
     function ExcelGlyph({ size = 18, active = false }) {
-      return React.createElement("span", {
-        "data-state": active ? "active" : "idle",
-        style: {
-          width: size + 8, height: size + 8, margin: -4, borderRadius: 6,
-          display: "inline-flex", alignItems: "center", justifyContent: "center",
-          background: active ? "#236b59" : "transparent",
-          color: active ? "#fff" : "currentColor",
-          boxShadow: active ? "0 0 0 2px rgba(35,107,89,.28)" : "none",
-          transition: "background-color .15s ease, color .15s ease, box-shadow .15s ease"
-        }
-      }, React.createElement("svg", {
+      return React.createElement("svg", {
         width: size, height: size, viewBox: "0 0 20 20", fill: "none",
-        stroke: "currentColor", strokeWidth: active ? 1.8 : 1.5, strokeLinecap: "round",
-        strokeLinejoin: "round", "aria-hidden": "true", style: { opacity: active ? 1 : .78 }
+        stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round",
+        strokeLinejoin: "round", "aria-hidden": "true", "data-dsh-excel-tab": "", style: { opacity: active ? 1 : .78 }
       },
         React.createElement("rect", { x: 3, y: 2.5, width: 14, height: 15, rx: 2 }),
         React.createElement("path", { d: "M3.5 7.5h13M8 7.5v9.5M8 12h8.5" })
-      ));
+      );
     }
 
     function formatSize(bytes) {
@@ -177,6 +167,49 @@ window.__ModuleLoader__.load({
 
     const css = `
 
+      /* The native New Session action and our sole panel share one row only while expanded.
+         If another panel joins, the sidebar keeps its built-in vertical layout. */
+      div:has(> nav > button:only-child [data-dsh-excel-tab]):has(> button[aria-label]) {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        column-gap: 8px;
+      }
+      div:has(> nav > button:only-child [data-dsh-excel-tab]):has(> button[aria-label]) {
+        > :first-child, > nav + div, > :last-child { grid-column: 1 / -1; }
+        > button, > nav > button {
+          box-sizing: border-box;
+          width: 100%;
+          min-width: 0;
+          height: 38px;
+          margin: 0;
+          border: 1px solid transparent;
+          border-radius: 10px;
+          background: transparent;
+          color: var(--dsw-alias-label-secondary, #aaa);
+          font-size: 14px;
+          justify-content: center;
+          gap: 5px;
+          padding: 6px;
+        }
+        > nav { min-width: 0; margin: 0 0 8px; gap: 0; }
+        > button { margin-bottom: 8px; }
+        > button:hover, > nav > button:hover {
+          background: var(--dsw-alias-interactive-bg-hover, #353535);
+        }
+        > button[aria-label]:has(+ nav:not(:has(> button[aria-current="page"]))),
+        > nav > button[aria-current="page"] {
+          background: var(--dsw-alias-interactive-bg-active, #414548);
+          color: var(--dsw-alias-label-primary, #fff);
+          border-color: var(--dsw-alias-border-l3, #555);
+          box-shadow: inset 0 -2px 0 var(--dsw-alias-label-primary, #fff);
+          font-weight: 600;
+        }
+        > button:focus-visible, > nav > button:focus-visible {
+          outline: 2px solid var(--dsw-alias-label-primary, #fff);
+          outline-offset: 2px;
+        }
+      }
       .dsh-excel-panel{box-sizing:border-box;min-height:100%;padding:clamp(28px,5vw,64px);background:var(--dsw-alias-bg-primary,var(--dsw-specific-main-fill,#1b1b1b));color:var(--dsw-alias-label-primary,#f4f4f4);font-family:var(--ds-font-family-base,system-ui,sans-serif)}
       .dsh-excel-header{max-width:1120px;margin:0 auto;display:flex;align-items:end;justify-content:space-between;gap:24px;border-bottom:1px solid var(--dsw-alias-border-l3,#454545);padding-bottom:28px}
       .dsh-excel-heading{min-width:0}.dsh-excel-kicker{font-size:12px;letter-spacing:.12em;color:var(--dsw-alias-label-secondary,#aaa)}

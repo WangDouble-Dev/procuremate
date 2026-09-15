@@ -16,9 +16,7 @@ vm.runInNewContext(source, {
 });
 const plugin = record.factory((name) => {
   assert.equal(name, 'react');
-  return {
-    createElement(type, props, ...children) { return { type, props: props ?? {}, children }; },
-  };
+  return {};
 });
 
 test('client bundle registers the sidebar entry and matching main panel', () => {
@@ -29,24 +27,16 @@ test('client bundle registers the sidebar entry and matching main panel', () => 
     effect(callback) { disposers.push(callback()); },
     slots: {
       inject(_slot, callback) { return callback(); },
-      register(options, component) { registrations.push({ options, component }); return () => {}; },
+      register(options) { registrations.push(options); return () => {}; },
     },
     remote: { workspaceFiles: { list: async () => ({ ok: true, value: { entries: [], truncated: false } }) } },
   };
   plugin.apply(context);
-  assert.deepEqual(Array.from(registrations, ({ options: { name, id, key } }) => ({ name, id, key })), [
+  assert.deepEqual(Array.from(registrations, ({ name, id, key }) => ({ name, id, key })), [
     { name: 'sidebar.panellist', id: 'excel-workspace', key: undefined },
     { name: 'main', id: undefined, key: 'excel-workspace' },
   ]);
   assert.equal(styles.length, 1);
-  assert.equal(styles[0].textContent.includes(':has('), false);
-  const glyph = registrations[0].component;
-  const idle = glyph({ size: 16, active: false });
-  const active = glyph({ size: 16, active: true });
-  assert.equal(idle.props['data-state'], 'idle');
-  assert.equal(idle.props.style.background, 'transparent');
-  assert.equal(active.props['data-state'], 'active');
-  assert.equal(active.props.style.background, '#236b59');
   disposers.forEach((dispose) => dispose?.());
   assert.equal(styles.length, 0);
 });

@@ -1,6 +1,6 @@
 {
   "name": "dsh-excel-workspace-tab",
-  "version": "0.3.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "./index.js",
@@ -8,18 +8,12 @@
     ".": "./index.js",
     "./client": "./client.js"
   },
-  "files": [
-    "index.js",
-    "client.js",
-    "cordis.patch.yml"
-  ],
+  "files": ["index.js", "client.js", "cordis.patch.yml"],
   "scripts": {
     "test": "node --test test/*.test.mjs"
   },
   "dsh": {
-    "bundle": {
-      "patch": "./cordis.patch.yml"
-    },
+    "bundle": { "patch": "./cordis.patch.yml" },
     "client": {
       "platform": "web",
       "inject": [
