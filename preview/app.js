@@ -1089,7 +1089,7 @@ var require_react_development = __commonJS({
           }
           return dispatcher.useContext(Context);
         }
-        function useState2(initialState) {
+        function useState3(initialState) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useState(initialState);
         }
@@ -1097,11 +1097,11 @@ var require_react_development = __commonJS({
           var dispatcher = resolveDispatcher();
           return dispatcher.useReducer(reducer, initialArg, init);
         }
-        function useRef(initialValue) {
+        function useRef2(initialValue) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useRef(initialValue);
         }
-        function useEffect2(create, deps) {
+        function useEffect3(create, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useEffect(create, deps);
         }
@@ -1723,10 +1723,10 @@ var require_react_development = __commonJS({
               ReactCurrentActQueue.isBatchingLegacy = true;
               result = callback();
               if (!prevIsBatchingLegacy && ReactCurrentActQueue.didScheduleLegacyUpdate) {
-                var queue = ReactCurrentActQueue.current;
-                if (queue !== null) {
+                var queue2 = ReactCurrentActQueue.current;
+                if (queue2 !== null) {
                   ReactCurrentActQueue.didScheduleLegacyUpdate = false;
-                  flushActQueue(queue);
+                  flushActQueue(queue2);
                 }
               }
             } catch (error2) {
@@ -1807,12 +1807,12 @@ var require_react_development = __commonJS({
         }
         function recursivelyFlushAsyncActWork(returnValue, resolve, reject) {
           {
-            var queue = ReactCurrentActQueue.current;
-            if (queue !== null) {
+            var queue2 = ReactCurrentActQueue.current;
+            if (queue2 !== null) {
               try {
-                flushActQueue(queue);
+                flushActQueue(queue2);
                 enqueueTask(function() {
-                  if (queue.length === 0) {
+                  if (queue2.length === 0) {
                     ReactCurrentActQueue.current = null;
                     resolve(returnValue);
                   } else {
@@ -1828,21 +1828,21 @@ var require_react_development = __commonJS({
           }
         }
         var isFlushing = false;
-        function flushActQueue(queue) {
+        function flushActQueue(queue2) {
           {
             if (!isFlushing) {
               isFlushing = true;
               var i = 0;
               try {
-                for (; i < queue.length; i++) {
-                  var callback = queue[i];
+                for (; i < queue2.length; i++) {
+                  var callback = queue2[i];
                   do {
                     callback = callback(true);
                   } while (callback !== null);
                 }
-                queue.length = 0;
+                queue2.length = 0;
               } catch (error2) {
-                queue = queue.slice(i + 1);
+                queue2 = queue2.slice(i + 1);
                 throw error2;
               } finally {
                 isFlushing = false;
@@ -1884,15 +1884,15 @@ var require_react_development = __commonJS({
         exports.useContext = useContext;
         exports.useDebugValue = useDebugValue;
         exports.useDeferredValue = useDeferredValue;
-        exports.useEffect = useEffect2;
+        exports.useEffect = useEffect3;
         exports.useId = useId;
         exports.useImperativeHandle = useImperativeHandle;
         exports.useInsertionEffect = useInsertionEffect;
         exports.useLayoutEffect = useLayoutEffect;
         exports.useMemo = useMemo;
         exports.useReducer = useReducer;
-        exports.useRef = useRef;
-        exports.useState = useState2;
+        exports.useRef = useRef2;
+        exports.useState = useState3;
         exports.useSyncExternalStore = useSyncExternalStore;
         exports.useTransition = useTransition;
         exports.version = ReactVersion;
@@ -6837,10 +6837,10 @@ var require_react_dom_development = __commonJS({
         function higherPriorityLane(a, b) {
           return a !== NoLane && a < b ? a : b;
         }
-        function createLaneMap(initial2) {
+        function createLaneMap(initial) {
           var laneMap = [];
           for (var i = 0; i < TotalLanes; i++) {
-            laneMap.push(initial2);
+            laneMap.push(initial);
           }
           return laneMap;
         }
@@ -11069,10 +11069,10 @@ var require_react_dom_development = __commonJS({
             var previousUpdatePriority = getCurrentUpdatePriority();
             try {
               var isSync = true;
-              var queue = syncQueue;
+              var queue2 = syncQueue;
               setCurrentUpdatePriority(DiscreteEventPriority);
-              for (; i < queue.length; i++) {
-                var callback = queue[i];
+              for (; i < queue2.length; i++) {
+                var callback = queue2[i];
                 do {
                   callback = callback(isSync);
                 } while (callback !== null);
@@ -12763,66 +12763,66 @@ var require_react_dom_development = __commonJS({
           return value;
         }
         var concurrentQueues = null;
-        function pushConcurrentUpdateQueue(queue) {
+        function pushConcurrentUpdateQueue(queue2) {
           if (concurrentQueues === null) {
-            concurrentQueues = [queue];
+            concurrentQueues = [queue2];
           } else {
-            concurrentQueues.push(queue);
+            concurrentQueues.push(queue2);
           }
         }
         function finishQueueingConcurrentUpdates() {
           if (concurrentQueues !== null) {
             for (var i = 0; i < concurrentQueues.length; i++) {
-              var queue = concurrentQueues[i];
-              var lastInterleavedUpdate = queue.interleaved;
+              var queue2 = concurrentQueues[i];
+              var lastInterleavedUpdate = queue2.interleaved;
               if (lastInterleavedUpdate !== null) {
-                queue.interleaved = null;
+                queue2.interleaved = null;
                 var firstInterleavedUpdate = lastInterleavedUpdate.next;
-                var lastPendingUpdate = queue.pending;
+                var lastPendingUpdate = queue2.pending;
                 if (lastPendingUpdate !== null) {
                   var firstPendingUpdate = lastPendingUpdate.next;
                   lastPendingUpdate.next = firstInterleavedUpdate;
                   lastInterleavedUpdate.next = firstPendingUpdate;
                 }
-                queue.pending = lastInterleavedUpdate;
+                queue2.pending = lastInterleavedUpdate;
               }
             }
             concurrentQueues = null;
           }
         }
-        function enqueueConcurrentHookUpdate(fiber, queue, update, lane) {
-          var interleaved = queue.interleaved;
+        function enqueueConcurrentHookUpdate(fiber, queue2, update, lane) {
+          var interleaved = queue2.interleaved;
           if (interleaved === null) {
             update.next = update;
-            pushConcurrentUpdateQueue(queue);
+            pushConcurrentUpdateQueue(queue2);
           } else {
             update.next = interleaved.next;
             interleaved.next = update;
           }
-          queue.interleaved = update;
+          queue2.interleaved = update;
           return markUpdateLaneFromFiberToRoot(fiber, lane);
         }
-        function enqueueConcurrentHookUpdateAndEagerlyBailout(fiber, queue, update, lane) {
-          var interleaved = queue.interleaved;
+        function enqueueConcurrentHookUpdateAndEagerlyBailout(fiber, queue2, update, lane) {
+          var interleaved = queue2.interleaved;
           if (interleaved === null) {
             update.next = update;
-            pushConcurrentUpdateQueue(queue);
+            pushConcurrentUpdateQueue(queue2);
           } else {
             update.next = interleaved.next;
             interleaved.next = update;
           }
-          queue.interleaved = update;
+          queue2.interleaved = update;
         }
-        function enqueueConcurrentClassUpdate(fiber, queue, update, lane) {
-          var interleaved = queue.interleaved;
+        function enqueueConcurrentClassUpdate(fiber, queue2, update, lane) {
+          var interleaved = queue2.interleaved;
           if (interleaved === null) {
             update.next = update;
-            pushConcurrentUpdateQueue(queue);
+            pushConcurrentUpdateQueue(queue2);
           } else {
             update.next = interleaved.next;
             interleaved.next = update;
           }
-          queue.interleaved = update;
+          queue2.interleaved = update;
           return markUpdateLaneFromFiberToRoot(fiber, lane);
         }
         function enqueueConcurrentRenderForLane(fiber, lane) {
@@ -12876,7 +12876,7 @@ var require_react_dom_development = __commonJS({
           currentlyProcessingQueue = null;
         }
         function initializeUpdateQueue(fiber) {
-          var queue = {
+          var queue2 = {
             baseState: fiber.memoizedState,
             firstBaseUpdate: null,
             lastBaseUpdate: null,
@@ -12887,12 +12887,12 @@ var require_react_dom_development = __commonJS({
             },
             effects: null
           };
-          fiber.updateQueue = queue;
+          fiber.updateQueue = queue2;
         }
         function cloneUpdateQueue(current2, workInProgress2) {
-          var queue = workInProgress2.updateQueue;
+          var queue2 = workInProgress2.updateQueue;
           var currentQueue = current2.updateQueue;
-          if (queue === currentQueue) {
+          if (queue2 === currentQueue) {
             var clone = {
               baseState: currentQueue.baseState,
               firstBaseUpdate: currentQueue.firstBaseUpdate,
@@ -12955,14 +12955,14 @@ var require_react_dom_development = __commonJS({
           }
         }
         function enqueueCapturedUpdate(workInProgress2, capturedUpdate) {
-          var queue = workInProgress2.updateQueue;
+          var queue2 = workInProgress2.updateQueue;
           var current2 = workInProgress2.alternate;
           if (current2 !== null) {
             var currentQueue = current2.updateQueue;
-            if (queue === currentQueue) {
+            if (queue2 === currentQueue) {
               var newFirst = null;
               var newLast = null;
-              var firstBaseUpdate = queue.firstBaseUpdate;
+              var firstBaseUpdate = queue2.firstBaseUpdate;
               if (firstBaseUpdate !== null) {
                 var update = firstBaseUpdate;
                 do {
@@ -12991,26 +12991,26 @@ var require_react_dom_development = __commonJS({
               } else {
                 newFirst = newLast = capturedUpdate;
               }
-              queue = {
+              queue2 = {
                 baseState: currentQueue.baseState,
                 firstBaseUpdate: newFirst,
                 lastBaseUpdate: newLast,
                 shared: currentQueue.shared,
                 effects: currentQueue.effects
               };
-              workInProgress2.updateQueue = queue;
+              workInProgress2.updateQueue = queue2;
               return;
             }
           }
-          var lastBaseUpdate = queue.lastBaseUpdate;
+          var lastBaseUpdate = queue2.lastBaseUpdate;
           if (lastBaseUpdate === null) {
-            queue.firstBaseUpdate = capturedUpdate;
+            queue2.firstBaseUpdate = capturedUpdate;
           } else {
             lastBaseUpdate.next = capturedUpdate;
           }
-          queue.lastBaseUpdate = capturedUpdate;
+          queue2.lastBaseUpdate = capturedUpdate;
         }
-        function getStateFromUpdate(workInProgress2, queue, update, prevState, nextProps, instance) {
+        function getStateFromUpdate(workInProgress2, queue2, update, prevState, nextProps, instance) {
           switch (update.tag) {
             case ReplaceState: {
               var payload = update.payload;
@@ -13073,16 +13073,16 @@ var require_react_dom_development = __commonJS({
           return prevState;
         }
         function processUpdateQueue(workInProgress2, props, instance, renderLanes2) {
-          var queue = workInProgress2.updateQueue;
+          var queue2 = workInProgress2.updateQueue;
           hasForceUpdate = false;
           {
-            currentlyProcessingQueue = queue.shared;
+            currentlyProcessingQueue = queue2.shared;
           }
-          var firstBaseUpdate = queue.firstBaseUpdate;
-          var lastBaseUpdate = queue.lastBaseUpdate;
-          var pendingQueue = queue.shared.pending;
+          var firstBaseUpdate = queue2.firstBaseUpdate;
+          var lastBaseUpdate = queue2.lastBaseUpdate;
+          var pendingQueue = queue2.shared.pending;
           if (pendingQueue !== null) {
-            queue.shared.pending = null;
+            queue2.shared.pending = null;
             var lastPendingUpdate = pendingQueue;
             var firstPendingUpdate = lastPendingUpdate.next;
             lastPendingUpdate.next = null;
@@ -13107,7 +13107,7 @@ var require_react_dom_development = __commonJS({
             }
           }
           if (firstBaseUpdate !== null) {
-            var newState = queue.baseState;
+            var newState = queue2.baseState;
             var newLanes = NoLanes;
             var newBaseState = null;
             var newFirstBaseUpdate = null;
@@ -13147,15 +13147,15 @@ var require_react_dom_development = __commonJS({
                   };
                   newLastBaseUpdate = newLastBaseUpdate.next = _clone;
                 }
-                newState = getStateFromUpdate(workInProgress2, queue, update, newState, props, instance);
+                newState = getStateFromUpdate(workInProgress2, queue2, update, newState, props, instance);
                 var callback = update.callback;
                 if (callback !== null && // If the update was already committed, we should not queue its
                 // callback again.
                 update.lane !== NoLane) {
                   workInProgress2.flags |= Callback;
-                  var effects = queue.effects;
+                  var effects = queue2.effects;
                   if (effects === null) {
-                    queue.effects = [update];
+                    queue2.effects = [update];
                   } else {
                     effects.push(update);
                   }
@@ -13163,7 +13163,7 @@ var require_react_dom_development = __commonJS({
               }
               update = update.next;
               if (update === null) {
-                pendingQueue = queue.shared.pending;
+                pendingQueue = queue2.shared.pending;
                 if (pendingQueue === null) {
                   break;
                 } else {
@@ -13171,18 +13171,18 @@ var require_react_dom_development = __commonJS({
                   var _firstPendingUpdate = _lastPendingUpdate.next;
                   _lastPendingUpdate.next = null;
                   update = _firstPendingUpdate;
-                  queue.lastBaseUpdate = _lastPendingUpdate;
-                  queue.shared.pending = null;
+                  queue2.lastBaseUpdate = _lastPendingUpdate;
+                  queue2.shared.pending = null;
                 }
               }
             } while (true);
             if (newLastBaseUpdate === null) {
               newBaseState = newState;
             }
-            queue.baseState = newBaseState;
-            queue.firstBaseUpdate = newFirstBaseUpdate;
-            queue.lastBaseUpdate = newLastBaseUpdate;
-            var lastInterleaved = queue.shared.interleaved;
+            queue2.baseState = newBaseState;
+            queue2.firstBaseUpdate = newFirstBaseUpdate;
+            queue2.lastBaseUpdate = newLastBaseUpdate;
+            var lastInterleaved = queue2.shared.interleaved;
             if (lastInterleaved !== null) {
               var interleaved = lastInterleaved;
               do {
@@ -13190,7 +13190,7 @@ var require_react_dom_development = __commonJS({
                 interleaved = interleaved.next;
               } while (interleaved !== lastInterleaved);
             } else if (firstBaseUpdate === null) {
-              queue.shared.lanes = NoLanes;
+              queue2.shared.lanes = NoLanes;
             }
             markSkippedUpdateLanes(newLanes);
             workInProgress2.lanes = newLanes;
@@ -13574,9 +13574,9 @@ var require_react_dom_development = __commonJS({
           if (didScheduleRenderPhaseUpdate) {
             var hook = currentlyRenderingFiber$1.memoizedState;
             while (hook !== null) {
-              var queue = hook.queue;
-              if (queue !== null) {
-                queue.pending = null;
+              var queue2 = hook.queue;
+              if (queue2 !== null) {
+                queue2.pending = null;
               }
               hook = hook.next;
             }
@@ -13670,7 +13670,7 @@ var require_react_dom_development = __commonJS({
             initialState = initialArg;
           }
           hook.memoizedState = hook.baseState = initialState;
-          var queue = {
+          var queue2 = {
             pending: null,
             interleaved: null,
             lanes: NoLanes,
@@ -13678,20 +13678,20 @@ var require_react_dom_development = __commonJS({
             lastRenderedReducer: reducer,
             lastRenderedState: initialState
           };
-          hook.queue = queue;
-          var dispatch = queue.dispatch = dispatchReducerAction.bind(null, currentlyRenderingFiber$1, queue);
+          hook.queue = queue2;
+          var dispatch = queue2.dispatch = dispatchReducerAction.bind(null, currentlyRenderingFiber$1, queue2);
           return [hook.memoizedState, dispatch];
         }
         function updateReducer(reducer, initialArg, init) {
           var hook = updateWorkInProgressHook();
-          var queue = hook.queue;
-          if (queue === null) {
+          var queue2 = hook.queue;
+          if (queue2 === null) {
             throw new Error("Should have a queue. This is likely a bug in React. Please file an issue.");
           }
-          queue.lastRenderedReducer = reducer;
+          queue2.lastRenderedReducer = reducer;
           var current2 = currentHook;
           var baseQueue = current2.baseQueue;
-          var pendingQueue = queue.pending;
+          var pendingQueue = queue2.pending;
           if (pendingQueue !== null) {
             if (baseQueue !== null) {
               var baseFirst = baseQueue.next;
@@ -13705,7 +13705,7 @@ var require_react_dom_development = __commonJS({
               }
             }
             current2.baseQueue = baseQueue = pendingQueue;
-            queue.pending = null;
+            queue2.pending = null;
           }
           if (baseQueue !== null) {
             var first = baseQueue.next;
@@ -13766,9 +13766,9 @@ var require_react_dom_development = __commonJS({
             hook.memoizedState = newState;
             hook.baseState = newBaseState;
             hook.baseQueue = newBaseQueueLast;
-            queue.lastRenderedState = newState;
+            queue2.lastRenderedState = newState;
           }
-          var lastInterleaved = queue.interleaved;
+          var lastInterleaved = queue2.interleaved;
           if (lastInterleaved !== null) {
             var interleaved = lastInterleaved;
             do {
@@ -13778,23 +13778,23 @@ var require_react_dom_development = __commonJS({
               interleaved = interleaved.next;
             } while (interleaved !== lastInterleaved);
           } else if (baseQueue === null) {
-            queue.lanes = NoLanes;
+            queue2.lanes = NoLanes;
           }
-          var dispatch = queue.dispatch;
+          var dispatch = queue2.dispatch;
           return [hook.memoizedState, dispatch];
         }
         function rerenderReducer(reducer, initialArg, init) {
           var hook = updateWorkInProgressHook();
-          var queue = hook.queue;
-          if (queue === null) {
+          var queue2 = hook.queue;
+          if (queue2 === null) {
             throw new Error("Should have a queue. This is likely a bug in React. Please file an issue.");
           }
-          queue.lastRenderedReducer = reducer;
-          var dispatch = queue.dispatch;
-          var lastRenderPhaseUpdate = queue.pending;
+          queue2.lastRenderedReducer = reducer;
+          var dispatch = queue2.dispatch;
+          var lastRenderPhaseUpdate = queue2.pending;
           var newState = hook.memoizedState;
           if (lastRenderPhaseUpdate !== null) {
-            queue.pending = null;
+            queue2.pending = null;
             var firstRenderPhaseUpdate = lastRenderPhaseUpdate.next;
             var update = firstRenderPhaseUpdate;
             do {
@@ -13809,7 +13809,7 @@ var require_react_dom_development = __commonJS({
             if (hook.baseQueue === null) {
               hook.baseState = newState;
             }
-            queue.lastRenderedState = newState;
+            queue2.lastRenderedState = newState;
           }
           return [newState, dispatch];
         }
@@ -13964,7 +13964,7 @@ var require_react_dom_development = __commonJS({
             initialState = initialState();
           }
           hook.memoizedState = hook.baseState = initialState;
-          var queue = {
+          var queue2 = {
             pending: null,
             interleaved: null,
             lanes: NoLanes,
@@ -13972,8 +13972,8 @@ var require_react_dom_development = __commonJS({
             lastRenderedReducer: basicStateReducer,
             lastRenderedState: initialState
           };
-          hook.queue = queue;
-          var dispatch = queue.dispatch = dispatchSetState.bind(null, currentlyRenderingFiber$1, queue);
+          hook.queue = queue2;
+          var dispatch = queue2.dispatch = dispatchSetState.bind(null, currentlyRenderingFiber$1, queue2);
           return [hook.memoizedState, dispatch];
         }
         function updateState(initialState) {
@@ -14287,7 +14287,7 @@ var require_react_dom_development = __commonJS({
           var id = hook.memoizedState;
           return id;
         }
-        function dispatchReducerAction(fiber, queue, action) {
+        function dispatchReducerAction(fiber, queue2, action) {
           {
             if (typeof arguments[3] === "function") {
               error("State updates from the useState() and useReducer() Hooks don't support the second callback argument. To execute a side effect after rendering, declare it in the component body with useEffect().");
@@ -14302,18 +14302,18 @@ var require_react_dom_development = __commonJS({
             next: null
           };
           if (isRenderPhaseUpdate(fiber)) {
-            enqueueRenderPhaseUpdate(queue, update);
+            enqueueRenderPhaseUpdate(queue2, update);
           } else {
-            var root2 = enqueueConcurrentHookUpdate(fiber, queue, update, lane);
+            var root2 = enqueueConcurrentHookUpdate(fiber, queue2, update, lane);
             if (root2 !== null) {
               var eventTime = requestEventTime();
               scheduleUpdateOnFiber(root2, fiber, lane, eventTime);
-              entangleTransitionUpdate(root2, queue, lane);
+              entangleTransitionUpdate(root2, queue2, lane);
             }
           }
           markUpdateInDevTools(fiber, lane);
         }
-        function dispatchSetState(fiber, queue, action) {
+        function dispatchSetState(fiber, queue2, action) {
           {
             if (typeof arguments[3] === "function") {
               error("State updates from the useState() and useReducer() Hooks don't support the second callback argument. To execute a side effect after rendering, declare it in the component body with useEffect().");
@@ -14328,11 +14328,11 @@ var require_react_dom_development = __commonJS({
             next: null
           };
           if (isRenderPhaseUpdate(fiber)) {
-            enqueueRenderPhaseUpdate(queue, update);
+            enqueueRenderPhaseUpdate(queue2, update);
           } else {
             var alternate = fiber.alternate;
             if (fiber.lanes === NoLanes && (alternate === null || alternate.lanes === NoLanes)) {
-              var lastRenderedReducer = queue.lastRenderedReducer;
+              var lastRenderedReducer = queue2.lastRenderedReducer;
               if (lastRenderedReducer !== null) {
                 var prevDispatcher;
                 {
@@ -14340,12 +14340,12 @@ var require_react_dom_development = __commonJS({
                   ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 }
                 try {
-                  var currentState = queue.lastRenderedState;
+                  var currentState = queue2.lastRenderedState;
                   var eagerState = lastRenderedReducer(currentState, action);
                   update.hasEagerState = true;
                   update.eagerState = eagerState;
                   if (objectIs(eagerState, currentState)) {
-                    enqueueConcurrentHookUpdateAndEagerlyBailout(fiber, queue, update, lane);
+                    enqueueConcurrentHookUpdateAndEagerlyBailout(fiber, queue2, update, lane);
                     return;
                   }
                 } catch (error2) {
@@ -14356,11 +14356,11 @@ var require_react_dom_development = __commonJS({
                 }
               }
             }
-            var root2 = enqueueConcurrentHookUpdate(fiber, queue, update, lane);
+            var root2 = enqueueConcurrentHookUpdate(fiber, queue2, update, lane);
             if (root2 !== null) {
               var eventTime = requestEventTime();
               scheduleUpdateOnFiber(root2, fiber, lane, eventTime);
-              entangleTransitionUpdate(root2, queue, lane);
+              entangleTransitionUpdate(root2, queue2, lane);
             }
           }
           markUpdateInDevTools(fiber, lane);
@@ -14369,23 +14369,23 @@ var require_react_dom_development = __commonJS({
           var alternate = fiber.alternate;
           return fiber === currentlyRenderingFiber$1 || alternate !== null && alternate === currentlyRenderingFiber$1;
         }
-        function enqueueRenderPhaseUpdate(queue, update) {
+        function enqueueRenderPhaseUpdate(queue2, update) {
           didScheduleRenderPhaseUpdateDuringThisPass = didScheduleRenderPhaseUpdate = true;
-          var pending = queue.pending;
+          var pending = queue2.pending;
           if (pending === null) {
             update.next = update;
           } else {
             update.next = pending.next;
             pending.next = update;
           }
-          queue.pending = update;
+          queue2.pending = update;
         }
-        function entangleTransitionUpdate(root2, queue, lane) {
+        function entangleTransitionUpdate(root2, queue2, lane) {
           if (isTransitionLane(lane)) {
-            var queueLanes = queue.lanes;
+            var queueLanes = queue2.lanes;
             queueLanes = intersectLanes(queueLanes, root2.pendingLanes);
             var newQueueLanes = mergeLanes(queueLanes, lane);
-            queue.lanes = newQueueLanes;
+            queue2.lanes = newQueueLanes;
             markRootEntangled(root2, newQueueLanes);
           }
         }
@@ -47258,11 +47258,11 @@ var require_exceljs_min = __commonJS({
 });
 
 // src/preview.jsx
-var import_react2 = __toESM(require_react(), 1);
+var import_react3 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // src/App.jsx
-var import_react = __toESM(require_react(), 1);
+var import_react2 = __toESM(require_react(), 1);
 
 // src/core.mjs
 var fields = { brand: "\u54C1\u724C", name: "\u54C1\u540D", model: "\u578B\u53F7", quantity: "\u6570\u91CF", unit: "\u5355\u4F4D", note: "\u5907\u6CE8", price: "\u5355\u4EF7", materialCode: "\u7269\u6599\u7F16\u7801" };
@@ -47299,7 +47299,17 @@ function reminders(row, data, stage) {
   return data.rules.filter((r) => (!r.stage || r.stage === "\u5168\u90E8" || r.stage === stage) && (!r.brand || canonical(r.brand, data.suppliers) === canonical(row.brand, data.suppliers)) && (!r.keyword || normalize(`${row.name} ${row.model} ${row.note}`).includes(normalize(r.keyword))) && (!r.noSupplier || !suppliersFor(row, data.suppliers).length));
 }
 function inquiry(rows) {
-  return "\u60A8\u597D\uFF0C\u8BF7\u5E2E\u5FD9\u62A5\u4EF7\u4EE5\u4E0B\u4EA7\u54C1\uFF1A\n\n" + rows.map((r, i) => `${i + 1}. \u54C1\u724C\uFF1A${clean(r.brand) || "\u5F85\u786E\u8BA4"}\uFF1B\u54C1\u540D\uFF1A${clean(r.name) || "\u2014"}\uFF1B\u578B\u53F7\uFF1A${clean(r.model) || "\u5F85\u786E\u8BA4"}\uFF1B\u6570\u91CF\uFF1A${clean(r.quantity) || "\u5F85\u786E\u8BA4"} ${clean(r.unit)}${r.materialCode ? "\uFF1B\u7269\u6599\u7F16\u7801\uFF1A" + clean(r.materialCode) : ""}${r.note ? "\uFF1B\u5907\u6CE8\uFF1A" + clean(r.note) : ""}`).join("\n") + "\n\n\u8BF7\u6CE8\u660E\u542B\u7A0E\u5355\u4EF7\u3001\u8FD0\u8D39\u3001\u8D27\u671F\u3001\u62A5\u4EF7\u6709\u6548\u671F\u53CA\u662F\u5426\u539F\u88C5\u6B63\u54C1\u3002\u8C22\u8C22\u3002";
+  const items = rows.map((r, i) => [
+    `\u3010\u5E8F\u53F7\u3011${i + 1}`,
+    `\u3010\u54C1\u724C\u3011${clean(r.brand) || "\u5F85\u786E\u8BA4"}`,
+    `\u3010\u54C1\u540D\u3011${clean(r.name) || "\u2014"}`,
+    `\u3010\u578B\u53F7 / \u89C4\u683C\u3011
+${clean(r.model) || "\u5F85\u786E\u8BA4"}`,
+    `\u3010\u6570\u91CF\u3011${[clean(r.quantity) || "\u5F85\u786E\u8BA4", clean(r.unit)].filter(Boolean).join(" ")}`,
+    ...r.materialCode ? [`\u3010\u7269\u6599\u7F16\u7801\u3011${clean(r.materialCode)}`] : [],
+    ...r.note ? [`\u3010\u5907\u6CE8\u3011${clean(r.note)}`] : []
+  ].join("\n"));
+  return "\u60A8\u597D\uFF0C\u8BF7\u5E2E\u5FD9\u62A5\u4EF7\u4EE5\u4E0B\u4EA7\u54C1\uFF1A\n\n" + items.join("\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n") + "\n\n\u8BF7\u6CE8\u660E\u542B\u7A0E\u5355\u4EF7\u3001\u8FD0\u8D39\u3001\u8D27\u671F\u3001\u62A5\u4EF7\u6709\u6548\u671F\u53CA\u662F\u5426\u539F\u88C5\u6B63\u54C1\u3002\u8C22\u8C22\u3002";
 }
 function searchLinks(brand, generic = false) {
   const q = encodeURIComponent(clean(brand));
@@ -73833,24 +73843,127 @@ async function importCatalog(buffer, schema) {
 }
 
 // src/style.css
-var style_default = ".pw{--ink:#223831;--green:#216452;--line:#dbe4df;--paper:#f4f7f5;--muted:#6b7c74;color:var(--ink);background:var(--paper);font:14px/1.55 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;min-height:100%;height:100%;overflow:auto;padding:32px;box-sizing:border-box}.pw *{box-sizing:border-box}.pw h1{font-family:'PingFang SC',sans-serif;font-weight:650;font-size:29px;letter-spacing:2px;margin:5px 0}.pw h2{font-size:18px;margin:8px 0 16px}.pw h3{font-size:14px;margin:8px 0}.pw p{margin:8px 0 14px}.pw small{display:block;font-size:12px;color:var(--muted)}.pw .pw-label{font:11px/1.5 ui-monospace,monospace;letter-spacing:2px;color:var(--green)}.pw-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:25px}.pw-actions,.pw-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pw button,.pw-button{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:1px solid var(--line);border-radius:7px;background:white;padding:7px 13px;font:inherit;color:var(--ink);cursor:pointer;white-space:nowrap}.pw button:hover,.pw-button:hover{border-color:var(--green);background:#edf4ef}.pw button:disabled{opacity:.45;cursor:not-allowed}.pw .primary{background:var(--green);color:#fff;border-color:var(--green)}.pw .primary:hover{background:#184c3e}.pw label.pw-button input[type=file]{display:none}.pw input,.pw textarea,.pw select{border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);padding:8px;font:inherit;max-width:100%;min-width:0}.pw input[type=checkbox]{accent-color:var(--green);width:16px;height:16px}.pw input:focus-visible,.pw textarea:focus-visible,.pw select:focus-visible,.pw button:focus-visible,.pw a:focus-visible{outline:2px solid #438475;outline-offset:2px}.pw nav{display:flex;gap:8px;border-bottom:1px solid var(--line);margin-bottom:24px;overflow:auto}.pw nav button{border:0;background:transparent;border-radius:0;padding:12px 17px;border-bottom:3px solid transparent}.pw nav button.active{border-bottom-color:var(--green);color:var(--green);font-weight:650}.pw nav small{margin-left:8px}.pw-summary{display:flex;gap:28px;align-items:center;padding:20px 0}.pw-summary strong{font:22px ui-monospace,monospace;color:var(--green)}.pw-summary span:last-child{margin-left:auto;color:var(--muted)}.pw-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}.pw-sheet{background:white;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:370px}.pw-table-scroll{overflow:auto;max-height:65vh}.pw table{border-collapse:collapse;width:100%;text-align:left;white-space:normal}.pw th{background:#eef3ef;color:var(--muted);font-weight:500;white-space:nowrap;position:sticky;top:0;z-index:1}.pw td,.pw th{padding:13px 11px;border-bottom:1px solid #e8eee9;vertical-align:top}.pw td{min-width:92px}.pw td:first-child{min-width:35px}.pw tr.partner{background:#f0f8f3}.pw tr.partner td:nth-child(2){border-left:3px solid #68a086}.pw .mono{font-family:ui-monospace,monospace;font-size:13px}.pw .pw-price{width:85px;padding:5px}.pw .pw-ticket{background:#fff;border:1px solid var(--line);border-top:4px solid var(--green);padding:20px;border-radius:4px 4px 10px 10px;box-shadow:0 5px 18px #153c2610}.pw label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}.pw-ticket textarea{width:100%;margin:14px 0;font-size:13px;resize:vertical;line-height:1.8;background:#fcfdfb}.pw-ticket button{width:100%}.pw-ticket p{font-size:12px;margin-bottom:0}.pw-notes{padding:15px 4px;border-bottom:1px solid var(--line)}.pw .muted{color:var(--muted);font-size:12px}.pw-alert{background:#fff1cc;border-left:3px solid #c9921b;padding:10px;font-size:13px}.pw a{color:var(--green);text-decoration:underline;text-underline-offset:3px}.pw-links{display:flex;flex-wrap:wrap;gap:9px;font-size:12px}.pw-empty{text-align:center;padding:55px 20px;color:var(--muted)}.pw-empty>span{font-size:44px;color:#8aab97}.pw-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:14px 0 20px}.pw-import,.pw-records{padding:24px;background:white;border:1px solid var(--line);border-radius:10px;margin-top:18px}.pw-import>label{display:inline-flex;margin-right:16px}.pw-records article{padding:20px 0;border-top:1px solid var(--line);margin-top:20px}.pw-records article button{margin-right:8px}.pw-records form{padding-bottom:20px}.pw-records pre{white-space:pre-wrap;word-break:break-word;background:var(--paper);padding:15px;font:13px/1.8 ui-monospace,monospace}.pw-message{background:#e4f0e9;border:1px solid #b5d0bf;border-radius:6px;padding:10px 14px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}.pw-message button{padding:0 8px;min-height:24px;background:transparent}.pw footer{color:var(--muted);font-size:11px;margin-top:28px}.pw .pw-toolbar h2{margin:0 auto 0 0}@media(max-width:1100px){.pw{padding:20px}.pw-grid{grid-template-columns:minmax(0,1fr)}.pw-grid aside{display:grid;grid-template-columns:1fr 1fr;gap:20px}.pw-ticket{grid-row:span 3}}@media(max-width:650px){.pw{padding:12px}.pw-head{display:block}.pw-actions{margin-top:16px}.pw-summary{gap:10px;flex-wrap:wrap}.pw-summary span:last-child{margin:0}.pw-grid aside{display:block}.pw-toolbar>input{width:100%}.pw h1{font-size:25px}}\n";
+var style_default = `.pw{--ink:#223831;--green:#216452;--line:#dbe4df;--paper:#f4f7f5;--muted:#6b7c74;color:var(--ink);background:var(--paper);font:14px/1.55 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;min-height:100%;height:100%;overflow:auto;padding:32px;box-sizing:border-box}.pw *{box-sizing:border-box}.pw h1{font-family:'PingFang SC',sans-serif;font-weight:650;font-size:29px;letter-spacing:2px;margin:5px 0}.pw h2{font-size:18px;margin:8px 0 16px}.pw h3{font-size:14px;margin:8px 0}.pw p{margin:8px 0 14px}.pw small{display:block;font-size:12px;color:var(--muted)}.pw .pw-label{font:11px/1.5 ui-monospace,monospace;letter-spacing:2px;color:var(--green)}.pw-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:25px}.pw-actions,.pw-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pw button,.pw-button{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:1px solid var(--line);border-radius:7px;background:white;padding:7px 13px;font:inherit;color:var(--ink);cursor:pointer;white-space:nowrap}.pw button:hover,.pw-button:hover{border-color:var(--green);background:#edf4ef}.pw button:disabled{opacity:.45;cursor:not-allowed}.pw .primary{background:var(--green);color:#fff;border-color:var(--green)}.pw .primary:hover{background:#184c3e}.pw label.pw-button input[type=file]{display:none}.pw input,.pw textarea,.pw select{border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);padding:8px;font:inherit;max-width:100%;min-width:0}.pw input[type=checkbox]{accent-color:var(--green);width:16px;height:16px}.pw input:focus-visible,.pw textarea:focus-visible,.pw select:focus-visible,.pw button:focus-visible,.pw a:focus-visible{outline:2px solid #438475;outline-offset:2px}.pw nav{display:flex;gap:8px;border-bottom:1px solid var(--line);margin-bottom:24px;overflow:auto}.pw nav button{border:0;background:transparent;border-radius:0;padding:12px 17px;border-bottom:3px solid transparent}.pw nav button.active{border-bottom-color:var(--green);color:var(--green);font-weight:650}.pw nav small{margin-left:8px}.pw-summary{display:flex;gap:28px;align-items:center;padding:20px 0}.pw-summary strong{font:22px ui-monospace,monospace;color:var(--green)}.pw-summary span:last-child{margin-left:auto;color:var(--muted)}.pw-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}.pw-sheet{background:white;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:370px}.pw-table-scroll{overflow:auto;max-height:65vh}.pw table{border-collapse:collapse;width:100%;text-align:left;white-space:normal}.pw th{background:#eef3ef;color:var(--muted);font-weight:500;white-space:nowrap;position:sticky;top:0;z-index:1}.pw td,.pw th{padding:13px 11px;border-bottom:1px solid #e8eee9;vertical-align:top}.pw td{min-width:92px}.pw td:first-child{min-width:35px}.pw tr.partner{background:#f0f8f3}.pw tr.partner td:nth-child(2){border-left:3px solid #68a086}.pw .mono{font-family:ui-monospace,monospace;font-size:13px}.pw .pw-price{width:85px;padding:5px}.pw .pw-ticket{background:#fff;border:1px solid var(--line);border-top:4px solid var(--green);padding:20px;border-radius:4px 4px 10px 10px;box-shadow:0 5px 18px #153c2610}.pw label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}.pw-ticket textarea{width:100%;margin:14px 0;font-size:13px;resize:vertical;line-height:1.8;background:#fcfdfb}.pw-ticket button{width:100%}.pw-ticket p{font-size:12px;margin-bottom:0}.pw-notes{padding:15px 4px;border-bottom:1px solid var(--line)}.pw .muted{color:var(--muted);font-size:12px}.pw-alert{background:#fff1cc;border-left:3px solid #c9921b;padding:10px;font-size:13px}.pw a{color:var(--green);text-decoration:underline;text-underline-offset:3px}.pw-links{display:flex;flex-wrap:wrap;gap:9px;font-size:12px}.pw-empty{text-align:center;padding:55px 20px;color:var(--muted)}.pw-empty>span{font-size:44px;color:#8aab97}.pw-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:14px 0 20px}.pw-import,.pw-records{padding:24px;background:white;border:1px solid var(--line);border-radius:10px;margin-top:18px}.pw-import>label{display:inline-flex;margin-right:16px}.pw-records article{padding:20px 0;border-top:1px solid var(--line);margin-top:20px}.pw-records article button{margin-right:8px}.pw-records form{padding-bottom:20px}.pw-records pre{white-space:pre-wrap;word-break:break-word;background:var(--paper);padding:15px;font:13px/1.8 ui-monospace,monospace}.pw-message{background:#e4f0e9;border:1px solid #b5d0bf;border-radius:6px;padding:10px 14px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}.pw-message button{padding:0 8px;min-height:24px;background:transparent}.pw footer{color:var(--muted);font-size:11px;margin-top:28px}.pw .pw-toolbar h2{margin:0 auto 0 0}@media(max-width:1100px){.pw{padding:20px}.pw-grid{grid-template-columns:minmax(0,1fr)}.pw-grid aside{display:grid;grid-template-columns:1fr 1fr;gap:20px}.pw-ticket{grid-row:span 3}}@media(max-width:650px){.pw{padding:12px}.pw-head{display:block}.pw-actions{margin-top:16px}.pw-summary{gap:10px;flex-wrap:wrap}.pw-summary span:last-child{margin:0}.pw-grid aside{display:block}.pw-toolbar>input{width:100%}.pw h1{font-size:25px}}
+
+.pw .pw-content{padding:0;margin:0;border:0;min-width:0}.pw-storage-status{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:12px;overflow-wrap:anywhere}.pw-import input[aria-label="\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"]{width:min(720px,75vw)}
+`;
+
+// src/useDiskState.jsx
+var import_react = __toESM(require_react(), 1);
+var EMPTY = () => ({ version: 1, data: emptyData(), rows: [], history: [] });
+var queue = Promise.resolve();
+function enqueue(fn) {
+  const task = queue.catch(() => {
+  }).then(fn);
+  queue = task;
+  return task;
+}
+async function request(method = "GET", body) {
+  const response = await fetch("/procurement-workbench/api", { method, headers: { "X-Procurement-Workbench": "1", ...body ? { "Content-Type": "application/json" } : {} }, ...body ? { body: JSON.stringify(body) } : {} });
+  let value;
+  try {
+    value = await response.json();
+  } catch {
+    throw Error("\u65E0\u6CD5\u8FDE\u63A5\u8D44\u6599\u5B58\u50A8\u670D\u52A1\u3002\u8BF7\u5B89\u88C5\u65B0\u7248\u63D2\u4EF6\u5E76\u91CD\u542F\uFF0C\u6216\u542F\u52A8\u65B0\u7248\u9884\u89C8\u670D\u52A1\u3002");
+  }
+  if (!response.ok) throw Error(value.error || "\u4FDD\u5B58\u5931\u8D25");
+  return value;
+}
+function useDiskState() {
+  const [payload, setPayload] = (0, import_react.useState)(EMPTY), [info, setInfo] = (0, import_react.useState)(null), [ready, setReady] = (0, import_react.useState)(false), [status, setStatus] = (0, import_react.useState)("\u6B63\u5728\u8BFB\u53D6"), [error, setError] = (0, import_react.useState)("");
+  const editVersion = (0, import_react.useRef)(0);
+  const revision = (0, import_react.useRef)(""), baseline = (0, import_react.useRef)(""), failed = (0, import_react.useRef)(false), mounted = (0, import_react.useRef)(true), pending = (0, import_react.useRef)(0), loading = (0, import_react.useRef)(false);
+  function accept(value) {
+    revision.current = value.revision;
+    baseline.current = JSON.stringify(value.payload);
+    setPayload(value.payload);
+    setInfo(value);
+    failed.current = false;
+    setError("");
+    setReady(true);
+    setStatus(value.exists ? "\u5DF2\u4FDD\u5B58\u5230\u6587\u4EF6" : "\u5C1A\u65E0\u6570\u636E\uFF0C\u9996\u6B21\u4FEE\u6539\u540E\u5199\u5165\u6587\u4EF6");
+  }
+  async function reload() {
+    loading.current = true;
+    setReady(false);
+    setStatus("\u6B63\u5728\u8BFB\u53D6");
+    try {
+      await queue.catch(() => {
+      });
+      const value = await request();
+      if (mounted.current) accept(value);
+    } catch (e) {
+      if (mounted.current) {
+        setError(e.message);
+        setStatus("\u8BFB\u53D6\u5931\u8D25");
+      }
+    } finally {
+      loading.current = false;
+    }
+  }
+  (0, import_react.useEffect)(() => {
+    mounted.current = true;
+    reload();
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  (0, import_react.useEffect)(() => {
+    if (!ready || loading.current) return;
+    const serialized = JSON.stringify(payload);
+    if (serialized === baseline.current) {
+      if (!pending.current && !failed.current) setStatus(info?.exists ? "\u5DF2\u4FDD\u5B58\u5230\u6587\u4EF6" : "\u5C1A\u65E0\u6570\u636E\uFF0C\u9996\u6B21\u4FEE\u6539\u540E\u5199\u5165\u6587\u4EF6");
+      return;
+    }
+    const version2 = editVersion.current;
+    baseline.current = serialized;
+    pending.current++;
+    setStatus("\u6B63\u5728\u4FDD\u5B58");
+    enqueue(async () => {
+      if (failed.current) throw Error("\u4FDD\u5B58\u5DF2\u6682\u505C\uFF0C\u8BF7\u5BFC\u51FA\u5F53\u524D\u8D44\u6599\u540E\u91CD\u65B0\u8F7D\u5165\u3002");
+      try {
+        const value = await request("PUT", { revision: revision.current, payload });
+        revision.current = value.revision;
+        if (mounted.current) setInfo(value);
+      } catch (e) {
+        failed.current = true;
+        throw e;
+      }
+    }).then(() => {
+      if (mounted.current && pending.current === 1 && editVersion.current === version2) setStatus("\u5DF2\u4FDD\u5B58\u5230\u6587\u4EF6");
+    }, (e) => {
+      if (mounted.current) {
+        setError(e.message);
+        setStatus("\u4FDD\u5B58\u5931\u8D25\uFF0C\u5F53\u524D\u4FEE\u6539\u672A\u786E\u8BA4\u5199\u5165\u6587\u4EF6");
+      }
+    }).finally(() => pending.current--);
+  }, [payload, ready]);
+  (0, import_react.useEffect)(() => {
+    const warn = (e) => {
+      if (pending.current || failed.current) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
+  async function changeDirectory(directory, mode) {
+    await queue.catch(() => {
+    });
+    if (failed.current) throw Error("\u8BF7\u5148\u5904\u7406\u4FDD\u5B58\u5931\u8D25\uFF0C\u518D\u5207\u6362\u76EE\u5F55\u3002");
+    const value = await enqueue(() => request("POST", { directory, mode, revision: revision.current }));
+    accept(value);
+  }
+  const setter = (key) => (value) => {
+    editVersion.current++;
+    setStatus("\u6B63\u5728\u4FDD\u5B58");
+    setPayload((p) => ({ ...p, [key]: typeof value === "function" ? value(p[key]) : value }));
+  };
+  return { data: payload.data, rows: payload.rows, history: payload.history, setData: setter("data"), setRows: setter("rows"), setHistory: setter("history"), ready, status, error, info, reload, changeDirectory };
+}
 
 // src/App.jsx
-var KEY = "dsh-procurement-workbench:v1";
-function initial() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const d = JSON.parse(raw);
-      validateData(d.data);
-      if (!Array.isArray(d.rows) || !Array.isArray(d.history)) throw Error("\u5B58\u6863\u683C\u5F0F\u4E0D\u6B63\u786E");
-      return d;
-    }
-  } catch (e) {
-    return { data: emptyData(), rows: [], history: [], error: "\u672C\u5730\u5B58\u6863\u8BFB\u53D6\u5931\u8D25\uFF0C\u8BF7\u4ECE\u5907\u4EFD\u6062\u590D\uFF1B\u5F53\u524D\u4E0D\u4F1A\u81EA\u52A8\u8986\u76D6\u65E7\u5B58\u6863\u3002" };
-  }
-  return { data: emptyData(), rows: [], history: [] };
-}
 function download(body, name, type = "application/json") {
   const u = URL.createObjectURL(new Blob([body], { type }));
   const a = document.createElement("a");
@@ -73862,35 +73975,26 @@ function download(body, name, type = "application/json") {
 var labels = { suppliers: "\u4F9B\u8D27\u5546", prices: "\u4EF7\u683C\u8868", channels: "\u6E20\u9053", rules: "\u6CE8\u610F\u4E8B\u9879" };
 var schemas = { suppliers: { brand: "\u54C1\u724C", aliases: "\u54C1\u724C\u522B\u540D\uFF08\u7528 | \u5206\u9694\uFF09", name: "\u4F9B\u8D27\u5546\u540D\u79F0", contact: "\u8054\u7CFB\u4EBA", wechat: "\u5FAE\u4FE1", phone: "\u7535\u8BDD" }, prices: { brand: "\u54C1\u724C", model: "\u578B\u53F7", unit: "\u5355\u4F4D", price: "\u5355\u4EF7", supplier: "\u4F9B\u8D27\u5546", currency: "\u5E01\u79CD\uFF08\u5982 CNY\uFF09", tax: "\u542B\u7A0E / \u672A\u7A0E", freight: "\u8FD0\u8D39\u6761\u4EF6", validFrom: "\u751F\u6548\u65E5 YYYY-MM-DD", validUntil: "\u6709\u6548\u81F3 YYYY-MM-DD", minQty: "\u8D77\u8BA2\u91CF" }, channels: { brand: "\u54C1\u724C", name: "\u6E20\u9053\u540D\u79F0", url: "\u6E20\u9053\u7F51\u5740", kind: "\u6E20\u9053\u7C7B\u578B\uFF08\u5982\u5B98\u7F51\u3001\u76F4\u8425\u5E97\u3001\u7ECF\u9500\u5546\uFF09", source: "\u6838\u5B9E\u6765\u6E90\u7F51\u5740", checkedAt: "\u6838\u5B9E\u65E5\u671F YYYY-MM-DD" }, rules: { brand: "\u54C1\u724C\uFF08\u7A7A\u767D\u4E3A\u5168\u90E8\uFF09", keyword: "\u54C1\u540D / \u578B\u53F7 / \u5907\u6CE8\u5173\u952E\u8BCD", stage: "\u573A\u666F\uFF1A\u5168\u90E8\u3001\u5BFC\u5165\u3001\u8BE2\u4EF7\u3001\u56DE\u586B\u3001\u5BFC\u51FA", message: "\u63D0\u9192\u5185\u5BB9" } };
 function App() {
-  const [saved] = (0, import_react.useState)(initial);
-  const [data, setData] = (0, import_react.useState)(saved.data);
-  const [rows, setRows] = (0, import_react.useState)(saved.rows);
-  const [history, setHistory] = (0, import_react.useState)(saved.history);
-  const [persist, setPersist] = (0, import_react.useState)(!saved.error);
-  const [message, setMessage] = (0, import_react.useState)(saved.error || "");
-  const [tab, setTab] = (0, import_react.useState)("work");
-  const [selected, setSelected] = (0, import_react.useState)([]);
-  const [filter, setFilter] = (0, import_react.useState)("");
-  const [recipient, setRecipient] = (0, import_react.useState)("");
-  const [stage, setStage] = (0, import_react.useState)("\u5BFC\u5165");
-  const [book, setBook] = (0, import_react.useState)(null);
-  const [sheet, setSheet] = (0, import_react.useState)("");
-  const [header, setHeader] = (0, import_react.useState)(1);
-  const [mapping, setMapping] = (0, import_react.useState)({});
-  const [fileName, setFileName] = (0, import_react.useState)("");
-  const [form, setForm] = (0, import_react.useState)({});
-  const [edit, setEdit] = (0, import_react.useState)(null);
-  const [busy, setBusy] = (0, import_react.useState)(false);
-  const [manual, setManual] = (0, import_react.useState)("");
-  const [historyFilter, setHistoryFilter] = (0, import_react.useState)("");
-  (0, import_react.useEffect)(() => {
-    if (!persist) return;
-    try {
-      localStorage.setItem(KEY, JSON.stringify({ version: 1, data, rows, history }));
-    } catch {
-      setMessage("\u81EA\u52A8\u4FDD\u5B58\u5931\u8D25\uFF0C\u53EF\u80FD\u5B58\u50A8\u7A7A\u95F4\u4E0D\u8DB3\u3002\u8BF7\u7ACB\u5373\u5BFC\u51FA\u5907\u4EFD\u3002");
-    }
-  }, [data, rows, history, persist]);
+  const disk = useDiskState();
+  const { data, rows, history, setData, setRows, setHistory } = disk;
+  const [message, setMessage] = (0, import_react2.useState)("");
+  const [settings, setSettings] = (0, import_react2.useState)(false);
+  const [directory, setDirectory] = (0, import_react2.useState)("");
+  const [tab, setTab] = (0, import_react2.useState)("work");
+  const [selected, setSelected] = (0, import_react2.useState)([]);
+  const [filter, setFilter] = (0, import_react2.useState)("");
+  const [recipient, setRecipient] = (0, import_react2.useState)("");
+  const [stage, setStage] = (0, import_react2.useState)("\u5BFC\u5165");
+  const [book, setBook] = (0, import_react2.useState)(null);
+  const [sheet, setSheet] = (0, import_react2.useState)("");
+  const [header, setHeader] = (0, import_react2.useState)(1);
+  const [mapping, setMapping] = (0, import_react2.useState)({});
+  const [fileName, setFileName] = (0, import_react2.useState)("");
+  const [form, setForm] = (0, import_react2.useState)({});
+  const [edit, setEdit] = (0, import_react2.useState)(null);
+  const [busy, setBusy] = (0, import_react2.useState)(false);
+  const [manual, setManual] = (0, import_react2.useState)("");
+  const [historyFilter, setHistoryFilter] = (0, import_react2.useState)("");
   const chosen = rows.filter((r) => selected.includes(r.id));
   const shown = rows.filter((r) => `${r.brand} ${r.name} ${r.model}`.toLowerCase().includes(filter.toLowerCase()));
   const text = manual || inquiry(chosen);
@@ -73951,15 +74055,18 @@ function App() {
   }
   function recordForm() {
     const list = [...data[tab]];
-    const record = { ...form, id: edit === null ? crypto.randomUUID() : list[edit].id };
+    const record = { ...form, id: edit === null ? crypto.randomUUID() : list[edit].id || crypto.randomUUID() };
     if (edit === null) list.push(record);
     else list[edit] = record;
     changeData(tab, list);
     setForm({});
     setEdit(null);
-    setMessage("\u8D44\u6599\u5DF2\u4FDD\u5B58\u3002");
+    setMessage("\u8D44\u6599\u5DF2\u66F4\u65B0\uFF0C\u8BF7\u4EE5\u9876\u90E8\u6587\u4EF6\u4FDD\u5B58\u72B6\u6001\u4E3A\u51C6\u3002");
   }
-  return /* @__PURE__ */ import_react.default.createElement("div", { className: "pw" }, /* @__PURE__ */ import_react.default.createElement("style", null, style_default), /* @__PURE__ */ import_react.default.createElement("header", { className: "pw-head" }, /* @__PURE__ */ import_react.default.createElement("div", null, /* @__PURE__ */ import_react.default.createElement("span", { className: "pw-label" }, "PERSONAL PROCUREMENT"), /* @__PURE__ */ import_react.default.createElement("h1", null, "\u91C7\u8D2D\u5DE5\u4F5C\u53F0"), /* @__PURE__ */ import_react.default.createElement("p", null, "\u4ECE\u4E00\u5F20\u9700\u6C42\u8868\uFF0C\u5230\u4E00\u6761\u80FD\u76F4\u63A5\u53D1\u9001\u7684\u8BE2\u4EF7\u6D88\u606F\u3002")), /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-actions" }, /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => download(JSON.stringify({ version: 1, data, rows, history }, null, 2), "\u91C7\u8D2D\u5DE5\u4F5C\u53F0\u5907\u4EFD.json") }, "\u5BFC\u51FA\u5907\u4EFD"), /* @__PURE__ */ import_react.default.createElement("label", { className: "pw-button" }, "\u6062\u590D\u5907\u4EFD", /* @__PURE__ */ import_react.default.createElement("input", { type: "file", accept: ".json", onChange: (e) => act(async () => {
+  return /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw" }, /* @__PURE__ */ import_react2.default.createElement("style", null, style_default), /* @__PURE__ */ import_react2.default.createElement("header", { className: "pw-head" }, /* @__PURE__ */ import_react2.default.createElement("div", null, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-label" }, "PERSONAL PROCUREMENT"), /* @__PURE__ */ import_react2.default.createElement("h1", null, "\u91C7\u8D2D\u5DE5\u4F5C\u53F0"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4ECE\u4E00\u5F20\u9700\u6C42\u8868\uFF0C\u5230\u4E00\u6761\u80FD\u76F4\u63A5\u53D1\u9001\u7684\u8BE2\u4EF7\u6D88\u606F\u3002")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-actions" }, /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
+    setDirectory(disk.info?.directory || "");
+    setSettings(!settings);
+  } }, "\u5B58\u50A8\u8BBE\u7F6E"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => download(JSON.stringify({ version: 1, data, rows, history }, null, 2), "\u91C7\u8D2D\u5DE5\u4F5C\u53F0\u5907\u4EFD.json") }, "\u5BFC\u51FA\u5907\u4EFD"), /* @__PURE__ */ import_react2.default.createElement("label", { className: "pw-button" }, "\u6062\u590D\u5907\u4EFD", /* @__PURE__ */ import_react2.default.createElement("input", { disabled: !disk.ready || busy, type: "file", accept: ".json", onChange: (e) => act(async () => {
     const f = e.target.files[0];
     if (!f) return;
     const x = JSON.parse(await f.text());
@@ -73969,30 +74076,40 @@ function App() {
     setData(x.data);
     setRows(x.rows);
     setHistory(x.history);
-    setPersist(true);
     resetSelection();
     setMessage("\u5907\u4EFD\u5DF2\u6062\u590D\u3002");
-  }) })))), /* @__PURE__ */ import_react.default.createElement("nav", { "aria-label": "\u5DE5\u4F5C\u53F0\u5BFC\u822A" }, [["work", "\u91C7\u8D2D\u660E\u7EC6"], ...Object.entries(labels), ["history", "\u8BE2\u4EF7\u8BB0\u5F55"]].map(([id, label]) => /* @__PURE__ */ import_react.default.createElement("button", { key: id, className: tab === id ? "active" : "", onClick: () => {
+  }) })))), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-storage-status" }, /* @__PURE__ */ import_react2.default.createElement("span", null, disk.status), disk.info && /* @__PURE__ */ import_react2.default.createElement("span", null, "\u76EE\u5F55\uFF1A", disk.info.directory)), disk.error && /* @__PURE__ */ import_react2.default.createElement("div", { role: "alert", className: "pw-message" }, disk.error, /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
+    if (!disk.ready || confirm("\u91CD\u65B0\u8F7D\u5165\u4F1A\u653E\u5F03\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u53EF\u5148\u5BFC\u51FA\u5F53\u524D\u8D44\u6599\uFF0C\u518D\u7EE7\u7EED\u3002")) disk.reload();
+  } }, "\u91CD\u65B0\u8F7D\u5165")), settings && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4F9B\u8D27\u5546\u3001\u4EF7\u683C\u8868\u3001\u6E20\u9053\u3001\u6CE8\u610F\u4E8B\u9879\u3001\u91C7\u8D2D\u660E\u7EC6\u548C\u8BE2\u4EF7\u8BB0\u5F55\u7EDF\u4E00\u4FDD\u5B58\u3002\u4FEE\u6539\u540E\u81EA\u52A8\u5199\u5165\u5F53\u524D\u6587\u4EF6\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u76EE\u5F55\u8DEF\u5F84", /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55", value: directory, onChange: (e) => setDirectory(e.target.value), placeholder: "/Users/double/buyer/data/" })), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, disk.info?.file && `\u5F53\u524D\u6587\u4EF6\uFF1A${disk.info.file}`), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
+    await disk.changeDirectory(directory, "copy");
+    resetSelection();
+    setMessage("\u5DF2\u590D\u5236\u8D44\u6599\u5E76\u5207\u6362\u76EE\u5F55\u3002\u539F\u76EE\u5F55\u6587\u4EF6\u4FDD\u7559\uFF0C\u540E\u7EED\u53EA\u66F4\u65B0\u65B0\u76EE\u5F55\u3002");
+  }) }, "\u590D\u5236\u5F53\u524D\u8D44\u6599\u5E76\u5207\u6362"), /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
+    if (!confirm("\u5C06\u8BFB\u53D6\u76EE\u6807\u76EE\u5F55\u7684\u8D44\u6599\uFF1B\u7A7A\u76EE\u5F55\u4F1A\u5EFA\u7ACB\u7A7A\u8D44\u6599\u3002\u5F53\u524D\u76EE\u5F55\u7684\u6587\u4EF6\u4FDD\u6301\u539F\u6837\u3002\u662F\u5426\u7EE7\u7EED\uFF1F")) return;
+    await disk.changeDirectory(directory, "open");
+    resetSelection();
+    setMessage("\u5DF2\u5207\u6362\u8D44\u6599\u76EE\u5F55\u3002");
+  }) }, "\u4F7F\u7528\u76EE\u6807\u76EE\u5F55\u8D44\u6599")), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u590D\u5236\u5230\u5DF2\u6709\u91C7\u8D2D\u8D44\u6599\u7684\u76EE\u5F55\u4F1A\u505C\u6B62\uFF0C\u907F\u514D\u8986\u76D6\u3002\u76EE\u5F55\u8BBE\u7F6E\u72EC\u7ACB\u4E8E\u63D2\u4EF6\u5B89\u88C5\u4F4D\u7F6E\u4FDD\u5B58\u3002")), /* @__PURE__ */ import_react2.default.createElement("fieldset", { className: "pw-content", disabled: !disk.ready || busy }, /* @__PURE__ */ import_react2.default.createElement("nav", { "aria-label": "\u5DE5\u4F5C\u53F0\u5BFC\u822A" }, [["work", "\u91C7\u8D2D\u660E\u7EC6"], ...Object.entries(labels), ["history", "\u8BE2\u4EF7\u8BB0\u5F55"]].map(([id, label]) => /* @__PURE__ */ import_react2.default.createElement("button", { key: id, className: tab === id ? "active" : "", onClick: () => {
     setTab(id);
     setForm({});
     setEdit(null);
-  } }, label, data[id]?.length > 0 && /* @__PURE__ */ import_react.default.createElement("small", null, data[id].length)))), message && /* @__PURE__ */ import_react.default.createElement("div", { role: "status", className: "pw-message" }, message, /* @__PURE__ */ import_react.default.createElement("button", { "aria-label": "\u5173\u95ED\u63D0\u793A", onClick: () => setMessage("") }, "\xD7")), tab === "work" ? /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react.default.createElement("label", { className: "pw-button primary" }, "\u5BFC\u5165 Excel", /* @__PURE__ */ import_react.default.createElement("input", { disabled: busy, type: "file", accept: ".xls,.xlsx", onChange: (e) => act(() => loadFile(e.target.files[0])) })), /* @__PURE__ */ import_react.default.createElement("input", { "aria-label": "\u641C\u7D22\u91C7\u8D2D\u660E\u7EC6", placeholder: "\u641C\u7D22\u54C1\u724C\u3001\u54C1\u540D\u6216\u578B\u53F7", value: filter, onChange: (e) => setFilter(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { disabled: !chosen.length || busy, onClick: fill2 }, "\u56DE\u586B\u9009\u4E2D\u884C\u4EF7\u683C"), /* @__PURE__ */ import_react.default.createElement("button", { disabled: !rows.length || busy, onClick: () => act(async () => {
+  } }, label, data[id]?.length > 0 && /* @__PURE__ */ import_react2.default.createElement("small", null, data[id].length)))), message && /* @__PURE__ */ import_react2.default.createElement("div", { role: "status", className: "pw-message" }, message, /* @__PURE__ */ import_react2.default.createElement("button", { "aria-label": "\u5173\u95ED\u63D0\u793A", onClick: () => setMessage("") }, "\xD7")), tab === "work" ? /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("label", { className: "pw-button primary" }, "\u5BFC\u5165 Excel", /* @__PURE__ */ import_react2.default.createElement("input", { disabled: busy, type: "file", accept: ".xls,.xlsx", onChange: (e) => act(() => loadFile(e.target.files[0])) })), /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u641C\u7D22\u91C7\u8D2D\u660E\u7EC6", placeholder: "\u641C\u7D22\u54C1\u724C\u3001\u54C1\u540D\u6216\u578B\u53F7", value: filter, onChange: (e) => setFilter(e.target.value) }), /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !chosen.length || busy, onClick: fill2 }, "\u56DE\u586B\u9009\u4E2D\u884C\u4EF7\u683C"), /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !rows.length || busy, onClick: () => act(async () => {
     setStage("\u5BFC\u51FA");
     download(await exportBook(rows.map((r) => {
       const ss = suppliersFor(r, data.suppliers);
       return { ...r, supplier: ss.map((s) => s.name).join(" / "), contact: ss.map((s) => [s.contact, s.wechat, s.phone].filter(Boolean).join(" ")).join(" / ") };
     })), "\u91C7\u8D2D\u660E\u7EC6-\u6574\u7406\u7248.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     setMessage("\u5DF2\u5BFC\u51FA\u6574\u7406\u7248 Excel\uFF1B\u539F\u6587\u4EF6\u6CA1\u6709\u4FEE\u6539\u3002");
-  }) }, "\u5BFC\u51FA\u6574\u7406\u7248")), book && /* @__PURE__ */ import_react.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react.default.createElement("h2", null, "\u786E\u8BA4\u8868\u5934\u4E0E\u5217\u5BF9\u5E94\u5173\u7CFB"), /* @__PURE__ */ import_react.default.createElement("p", null, fileName, " \xB7 \u5BFC\u5165\u5C06\u66FF\u6362\u5F53\u524D\u91C7\u8D2D\u660E\u7EC6\uFF0C\u4F9B\u8D27\u5546\u8D44\u6599\u548C\u8BE2\u4EF7\u8BB0\u5F55\u4F1A\u4FDD\u7559\u3002"), /* @__PURE__ */ import_react.default.createElement("label", null, "\u5DE5\u4F5C\u8868", /* @__PURE__ */ import_react.default.createElement("select", { value: sheet, onChange: (e) => {
+  }) }, "\u5BFC\u51FA\u6574\u7406\u7248")), book && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u786E\u8BA4\u8868\u5934\u4E0E\u5217\u5BF9\u5E94\u5173\u7CFB"), /* @__PURE__ */ import_react2.default.createElement("p", null, fileName, " \xB7 \u5BFC\u5165\u5C06\u66FF\u6362\u5F53\u524D\u91C7\u8D2D\u660E\u7EC6\uFF0C\u4F9B\u8D27\u5546\u8D44\u6599\u548C\u8BE2\u4EF7\u8BB0\u5F55\u4F1A\u4FDD\u7559\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u5DE5\u4F5C\u8868", /* @__PURE__ */ import_react2.default.createElement("select", { value: sheet, onChange: (e) => {
     setSheet(e.target.value);
     const found = detectHeader(book.getWorksheet(e.target.value));
     setHeader(found.headerRow);
     setMapping(found.mapping);
-  } }, book.worksheets.map((s) => /* @__PURE__ */ import_react.default.createElement("option", { key: s.name }, s.name)))), /* @__PURE__ */ import_react.default.createElement("label", null, "\u8868\u5934\u884C", /* @__PURE__ */ import_react.default.createElement("input", { type: "number", min: "1", value: header, onChange: (e) => {
+  } }, book.worksheets.map((s) => /* @__PURE__ */ import_react2.default.createElement("option", { key: s.name }, s.name)))), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u8868\u5934\u884C", /* @__PURE__ */ import_react2.default.createElement("input", { type: "number", min: "1", value: header, onChange: (e) => {
     const h = Math.max(1, Number(e.target.value));
     setHeader(h);
     autoMap(book, sheet, h);
-  } })), /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-fields" }, Object.entries(fields).map(([k, l]) => /* @__PURE__ */ import_react.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react.default.createElement("select", { "aria-label": `${l}\u5BF9\u5E94\u5217`, value: mapping[k] || "", onChange: (e) => setMapping({ ...mapping, [k]: e.target.value }) }, /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, "\u4E0D\u5BFC\u5165"), Array.from({ length: Math.min(book.getWorksheet(sheet).columnCount, 100) }, (_, i) => /* @__PURE__ */ import_react.default.createElement("option", { key: i, value: i + 1 }, i + 1, " \xB7 ", book.getWorksheet(sheet).getRow(header).getCell(i + 1).text || "\u7A7A\u8868\u5934")))))), /* @__PURE__ */ import_react.default.createElement("button", { className: "primary", onClick: () => act(() => {
+  } })), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(fields).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement("select", { "aria-label": `${l}\u5BF9\u5E94\u5217`, value: mapping[k] || "", onChange: (e) => setMapping({ ...mapping, [k]: e.target.value }) }, /* @__PURE__ */ import_react2.default.createElement("option", { value: "" }, "\u4E0D\u5BFC\u5165"), Array.from({ length: Math.min(book.getWorksheet(sheet).columnCount, 100) }, (_, i) => /* @__PURE__ */ import_react2.default.createElement("option", { key: i, value: i + 1 }, i + 1, " \xB7 ", book.getWorksheet(sheet).getRow(header).getCell(i + 1).text || "\u7A7A\u8868\u5934")))))), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", onClick: () => act(() => {
     if (!mapping.brand || !mapping.model || !mapping.quantity) throw Error("\u8BF7\u81F3\u5C11\u5BF9\u5E94\u54C1\u724C\u3001\u578B\u53F7\u3001\u6570\u91CF\u5217");
     if (new Set(Object.values(mapping).filter(Boolean).map(String)).size !== Object.values(mapping).filter(Boolean).length) throw Error("\u4E0D\u540C\u5B57\u6BB5\u4E0D\u80FD\u4F7F\u7528\u540C\u4E00\u5217");
     const next = sheetRows(book.getWorksheet(sheet), header, mapping).map((r) => ({ ...r, sourceFile: fileName }));
@@ -74003,19 +74120,19 @@ function App() {
     setBook(null);
     setStage("\u5BFC\u5165");
     setMessage(`\u5DF2\u5BFC\u5165 ${next.length} \u884C\u3002\u8BF7\u52FE\u9009\u9700\u8981\u8BE2\u4EF7\u6216\u56DE\u586B\u7684\u884C\u3002`);
-  }) }, "\u786E\u8BA4\u5BFC\u5165"), /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => setBook(null) }, "\u53D6\u6D88")), /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-summary" }, /* @__PURE__ */ import_react.default.createElement("span", null, /* @__PURE__ */ import_react.default.createElement("strong", null, rows.length), " \u884C\u9700\u6C42"), /* @__PURE__ */ import_react.default.createElement("span", null, /* @__PURE__ */ import_react.default.createElement("strong", null, rows.filter((r) => suppliersFor(r, data.suppliers).length).length), " \u884C\u6709\u5408\u4F5C\u4F9B\u8D27\u5546"), /* @__PURE__ */ import_react.default.createElement("span", null, /* @__PURE__ */ import_react.default.createElement("strong", null, rows.filter((r) => quoteFor(r, data).quote).length), " \u884C\u6709\u53EF\u7528\u62A5\u4EF7"), /* @__PURE__ */ import_react.default.createElement("span", null, "\u5DF2\u9009 ", chosen.length, " \u884C")), /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-grid" }, /* @__PURE__ */ import_react.default.createElement("section", { className: "pw-sheet" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-table-scroll" }, /* @__PURE__ */ import_react.default.createElement("table", null, /* @__PURE__ */ import_react.default.createElement("thead", null, /* @__PURE__ */ import_react.default.createElement("tr", null, /* @__PURE__ */ import_react.default.createElement("th", null, /* @__PURE__ */ import_react.default.createElement("input", { "aria-label": "\u9009\u62E9\u5F53\u524D\u7B5B\u9009\u7684\u5168\u90E8\u884C", type: "checkbox", checked: !!shown.length && shown.every((r) => selected.includes(r.id)), onChange: (e) => {
+  }) }, "\u786E\u8BA4\u5BFC\u5165"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setBook(null) }, "\u53D6\u6D88")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-summary" }, /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.length), " \u884C\u9700\u6C42"), /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.filter((r) => suppliersFor(r, data.suppliers).length).length), " \u884C\u6709\u5408\u4F5C\u4F9B\u8D27\u5546"), /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.filter((r) => quoteFor(r, data).quote).length), " \u884C\u6709\u53EF\u7528\u62A5\u4EF7"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u9009 ", chosen.length, " \u884C")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-grid" }, /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-sheet" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-table-scroll" }, /* @__PURE__ */ import_react2.default.createElement("table", null, /* @__PURE__ */ import_react2.default.createElement("thead", null, /* @__PURE__ */ import_react2.default.createElement("tr", null, /* @__PURE__ */ import_react2.default.createElement("th", null, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u9009\u62E9\u5F53\u524D\u7B5B\u9009\u7684\u5168\u90E8\u884C", type: "checkbox", checked: !!shown.length && shown.every((r) => selected.includes(r.id)), onChange: (e) => {
     setSelected(e.target.checked ? [.../* @__PURE__ */ new Set([...selected, ...shown.map((r) => r.id)])] : selected.filter((id) => !shown.some((r) => r.id === id)));
     setManual("");
-  } })), /* @__PURE__ */ import_react.default.createElement("th", null, "\u54C1\u724C / \u54C1\u540D"), /* @__PURE__ */ import_react.default.createElement("th", null, "\u578B\u53F7"), /* @__PURE__ */ import_react.default.createElement("th", null, "\u6570\u91CF"), /* @__PURE__ */ import_react.default.createElement("th", null, "\u4F9B\u8D27\u5546 / \u8054\u7CFB\u65B9\u5F0F"), /* @__PURE__ */ import_react.default.createElement("th", null, "\u5355\u4EF7 / \u5339\u914D\u7ED3\u679C"))), /* @__PURE__ */ import_react.default.createElement("tbody", null, shown.map((r) => {
+  } })), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u54C1\u724C / \u54C1\u540D"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u578B\u53F7"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u6570\u91CF"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u4F9B\u8D27\u5546 / \u8054\u7CFB\u65B9\u5F0F"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u5355\u4EF7 / \u5339\u914D\u7ED3\u679C"))), /* @__PURE__ */ import_react2.default.createElement("tbody", null, shown.map((r) => {
     const ss = suppliersFor(r, data.suppliers), q = quoteFor(r, data);
-    return /* @__PURE__ */ import_react.default.createElement("tr", { key: r.id, className: ss.length ? "partner" : "" }, /* @__PURE__ */ import_react.default.createElement("td", null, /* @__PURE__ */ import_react.default.createElement("input", { "aria-label": `\u9009\u62E9 ${r.model}`, type: "checkbox", checked: selected.includes(r.id), onChange: (e) => {
+    return /* @__PURE__ */ import_react2.default.createElement("tr", { key: r.id, className: ss.length ? "partner" : "" }, /* @__PURE__ */ import_react2.default.createElement("td", null, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": `\u9009\u62E9 ${r.model}`, type: "checkbox", checked: selected.includes(r.id), onChange: (e) => {
       setSelected(e.target.checked ? [...selected, r.id] : selected.filter((id) => id !== r.id));
       setManual("");
-    } })), /* @__PURE__ */ import_react.default.createElement("td", null, /* @__PURE__ */ import_react.default.createElement("b", null, r.brand || "\u672A\u586B\u5199\u54C1\u724C"), isGenericBrand(r.brand) && /* @__PURE__ */ import_react.default.createElement("small", null, "\u672A\u6307\u5B9A\u5177\u4F53\u54C1\u724C"), /* @__PURE__ */ import_react.default.createElement("small", null, r.name), r.materialCode && /* @__PURE__ */ import_react.default.createElement("small", null, "\u7269\u6599\u7F16\u7801 ", r.materialCode), r.note && /* @__PURE__ */ import_react.default.createElement("small", null, r.note)), /* @__PURE__ */ import_react.default.createElement("td", { className: "mono" }, r.model || "\u672A\u586B\u5199\u578B\u53F7"), /* @__PURE__ */ import_react.default.createElement("td", null, r.quantity, " ", r.unit), /* @__PURE__ */ import_react.default.createElement("td", null, ss.length ? ss.map((s, i) => /* @__PURE__ */ import_react.default.createElement("div", { key: i }, /* @__PURE__ */ import_react.default.createElement("b", null, s.name), /* @__PURE__ */ import_react.default.createElement("small", null, [s.contact, s.wechat && `\u5FAE\u4FE1 ${s.wechat}`, s.phone].filter(Boolean).join(" \xB7 ") || "\u5C1A\u672A\u586B\u5199\u8054\u7CFB\u65B9\u5F0F"))) : /* @__PURE__ */ import_react.default.createElement("span", { className: "muted" }, "\u5F85\u5BFB\u627E\u6E20\u9053")), /* @__PURE__ */ import_react.default.createElement("td", null, /* @__PURE__ */ import_react.default.createElement("input", { className: "pw-price", "aria-label": `${r.model} \u5355\u4EF7`, value: r.price || "", onChange: (e) => setRows(rows.map((x) => x.id === r.id ? { ...x, price: e.target.value, basis: "\u624B\u52A8\u586B\u5199\uFF0C\u8BA1\u4EF7\u6761\u4EF6\u5F85\u786E\u8BA4" } : x)) }), r.taxBasis && /* @__PURE__ */ import_react.default.createElement("small", null, "\u76EE\u6807\u5355\u4EF7\uFF1A", r.taxBasis), /* @__PURE__ */ import_react.default.createElement("small", null, r.basis || q.reason)));
-  })))), !rows.length && /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-empty" }, /* @__PURE__ */ import_react.default.createElement("span", null, "\u25A4"), /* @__PURE__ */ import_react.default.createElement("h2", null, "\u5148\u5BFC\u5165\u4E00\u5F20\u91C7\u8D2D\u9700\u6C42\u8868"), /* @__PURE__ */ import_react.default.createElement("p", null, "\u652F\u6301 .xls / .xlsx\uFF1B\u53EF\u9009\u62E9\u5DE5\u4F5C\u8868\u548C\u8868\u5934\u884C\u3002", /* @__PURE__ */ import_react.default.createElement("br", null), "\u5408\u4F5C\u4F9B\u8D27\u5546\u6807\u7EFF\uFF0C\u62A5\u4EF7\u6761\u4EF6\u9010\u884C\u6838\u5BF9\u3002"))), /* @__PURE__ */ import_react.default.createElement("aside", null, /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-ticket" }, /* @__PURE__ */ import_react.default.createElement("span", { className: "pw-label" }, "\u8BE2\u4EF7\u5355 \xB7 \u7EAF\u6587\u672C"), /* @__PURE__ */ import_react.default.createElement("h2", null, "\u9009\u597D\u660E\u7EC6\uFF0C\u76F4\u63A5\u590D\u5236"), /* @__PURE__ */ import_react.default.createElement("label", null, "\u53D1\u9001\u5BF9\u8C61\uFF08\u4EC5\u7528\u4E8E\u5B58\u6863\uFF09", /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "\u4F8B\u5982\uFF1A\u5F20\u7ECF\u7406 / \u5FAE\u4FE1", value: recipient, onChange: (e) => setRecipient(e.target.value) })), /* @__PURE__ */ import_react.default.createElement("textarea", { "aria-label": "\u8BE2\u4EF7\u6587\u672C", rows: 13, value: chosen.length ? text : "", placeholder: "\u52FE\u9009\u5DE6\u4FA7\u660E\u7EC6\u540E\uFF0C\u8BE2\u4EF7\u6587\u672C\u4F1A\u51FA\u73B0\u5728\u8FD9\u91CC\u3002\u53EA\u5305\u542B\u4EA7\u54C1\u9700\u6C42\uFF0C\u4E0D\u5305\u542B\u91C7\u8D2D\u5E95\u4EF7\u3002", onChange: (e) => setManual(e.target.value) }), /* @__PURE__ */ import_react.default.createElement("button", { className: "primary", disabled: !chosen.length || busy, onClick: () => act(copy) }, "\u590D\u5236\u7EAF\u6587\u672C\u5E76\u5B58\u6863"), /* @__PURE__ */ import_react.default.createElement("p", { className: "muted" }, "\u590D\u5236\u540E\u81EA\u884C\u7C98\u8D34\u81F3\u5FAE\u4FE1\u6216\u7535\u5546\u5BA2\u670D\u3002\u53EF\u7F16\u8F91\u6587\u5B57\uFF1B\u8C03\u6574\u9009\u4E2D\u884C\u540E\u91CD\u65B0\u751F\u6210\u3002")), /* @__PURE__ */ import_react.default.createElement("section", { className: "pw-notes" }, /* @__PURE__ */ import_react.default.createElement("label", null, "\u63D0\u793A\u573A\u666F", /* @__PURE__ */ import_react.default.createElement("select", { value: stage, onChange: (e) => setStage(e.target.value) }, ["\u5BFC\u5165", "\u8BE2\u4EF7", "\u56DE\u586B", "\u5BFC\u51FA"].map((s) => /* @__PURE__ */ import_react.default.createElement("option", { key: s }, s)))), /* @__PURE__ */ import_react.default.createElement("h3", null, "\u5F53\u524D\u6CE8\u610F\u4E8B\u9879"), alerts.length ? [...new Set(alerts)].map((a, i) => /* @__PURE__ */ import_react.default.createElement("p", { key: i, className: "pw-alert" }, a)) : /* @__PURE__ */ import_react.default.createElement("p", { className: "muted" }, chosen.length ? "\u6B64\u573A\u666F\u6CA1\u6709\u5339\u914D\u7684\u63D0\u9192\u3002" : "\u9009\u4E2D\u660E\u7EC6\u540E\u663E\u793A\u5339\u914D\u63D0\u9192\u3002")), channelTargets(chosen, data.suppliers).map((target) => /* @__PURE__ */ import_react.default.createElement("section", { className: "pw-notes", key: target.key }, /* @__PURE__ */ import_react.default.createElement("h3", null, target.label, " \xB7 \u5BFB\u627E\u6E20\u9053"), data.channels.filter((c) => !target.generic && canonical(c.brand, data.suppliers) === canonical(target.query, data.suppliers)).map((c, i) => /* @__PURE__ */ import_react.default.createElement("p", { key: i }, /* @__PURE__ */ import_react.default.createElement("a", { href: safeUrl(c.url), target: "_blank", rel: "noreferrer" }, c.name || c.kind || "\u5DF2\u8BB0\u5F55\u6E20\u9053"), /* @__PURE__ */ import_react.default.createElement("small", null, c.kind, " \xB7 \u4EBA\u5DE5\u6838\u5B9E\u4E8E ", c.checkedAt, " \xB7 ", /* @__PURE__ */ import_react.default.createElement("a", { href: safeUrl(c.source), target: "_blank", rel: "noreferrer" }, "\u6838\u5B9E\u6765\u6E90")))), /* @__PURE__ */ import_react.default.createElement("p", { className: "muted" }, target.generic ? "\u672A\u6307\u5B9A\u5177\u4F53\u54C1\u724C\uFF0C\u6309\u54C1\u540D\u548C\u89C4\u683C\u67E5\u627E\u4F9B\u8D27\u6E20\u9053\u3002" : "\u4EE5\u4E0B\u662F\u641C\u7D22\u5165\u53E3\uFF0C\u5C1A\u672A\u6838\u5B9E\u662F\u5426\u6709\u76F4\u8425\u5E97\u3002"), /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-links" }, searchLinks(target.query, target.generic).map((c) => /* @__PURE__ */ import_react.default.createElement("a", { key: c.name, href: c.url, target: "_blank", rel: "noreferrer" }, c.name, " \u2197")))))))) : tab === "history" ? /* @__PURE__ */ import_react.default.createElement("section", { className: "pw-records" }, /* @__PURE__ */ import_react.default.createElement("h2", null, "\u8BE2\u4EF7\u8BB0\u5F55 ", /* @__PURE__ */ import_react.default.createElement("small", null, history.length)), /* @__PURE__ */ import_react.default.createElement("input", { placeholder: "\u641C\u7D22\u5BF9\u8C61\u6216\u8BE2\u4EF7\u5185\u5BB9", value: historyFilter, onChange: (e) => setHistoryFilter(e.target.value) }), history.filter((h) => `${h.recipient} ${h.text}`.includes(historyFilter)).map((h) => /* @__PURE__ */ import_react.default.createElement("article", { key: h.id }, /* @__PURE__ */ import_react.default.createElement("b", null, h.recipient), /* @__PURE__ */ import_react.default.createElement("small", null, new Date(h.at).toLocaleString(), " \xB7 ", h.source), /* @__PURE__ */ import_react.default.createElement("pre", null, h.text), /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => act(async () => {
+    } })), /* @__PURE__ */ import_react2.default.createElement("td", null, /* @__PURE__ */ import_react2.default.createElement("b", null, r.brand || "\u672A\u586B\u5199\u54C1\u724C"), isGenericBrand(r.brand) && /* @__PURE__ */ import_react2.default.createElement("small", null, "\u672A\u6307\u5B9A\u5177\u4F53\u54C1\u724C"), /* @__PURE__ */ import_react2.default.createElement("small", null, r.name), r.materialCode && /* @__PURE__ */ import_react2.default.createElement("small", null, "\u7269\u6599\u7F16\u7801 ", r.materialCode), r.note && /* @__PURE__ */ import_react2.default.createElement("small", null, r.note)), /* @__PURE__ */ import_react2.default.createElement("td", { className: "mono" }, r.model || "\u672A\u586B\u5199\u578B\u53F7"), /* @__PURE__ */ import_react2.default.createElement("td", null, r.quantity, " ", r.unit), /* @__PURE__ */ import_react2.default.createElement("td", null, ss.length ? ss.map((s, i) => /* @__PURE__ */ import_react2.default.createElement("div", { key: i }, /* @__PURE__ */ import_react2.default.createElement("b", null, s.name), /* @__PURE__ */ import_react2.default.createElement("small", null, [s.contact, s.wechat && `\u5FAE\u4FE1 ${s.wechat}`, s.phone].filter(Boolean).join(" \xB7 ") || "\u5C1A\u672A\u586B\u5199\u8054\u7CFB\u65B9\u5F0F"))) : /* @__PURE__ */ import_react2.default.createElement("span", { className: "muted" }, "\u5F85\u5BFB\u627E\u6E20\u9053")), /* @__PURE__ */ import_react2.default.createElement("td", null, /* @__PURE__ */ import_react2.default.createElement("input", { className: "pw-price", "aria-label": `${r.model} \u5355\u4EF7`, value: r.price || "", onChange: (e) => setRows(rows.map((x) => x.id === r.id ? { ...x, price: e.target.value, basis: "\u624B\u52A8\u586B\u5199\uFF0C\u8BA1\u4EF7\u6761\u4EF6\u5F85\u786E\u8BA4" } : x)) }), r.taxBasis && /* @__PURE__ */ import_react2.default.createElement("small", null, "\u76EE\u6807\u5355\u4EF7\uFF1A", r.taxBasis), /* @__PURE__ */ import_react2.default.createElement("small", null, r.basis || q.reason)));
+  })))), !rows.length && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-empty" }, /* @__PURE__ */ import_react2.default.createElement("span", null, "\u25A4"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u5148\u5BFC\u5165\u4E00\u5F20\u91C7\u8D2D\u9700\u6C42\u8868"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u652F\u6301 .xls / .xlsx\uFF1B\u53EF\u9009\u62E9\u5DE5\u4F5C\u8868\u548C\u8868\u5934\u884C\u3002", /* @__PURE__ */ import_react2.default.createElement("br", null), "\u5408\u4F5C\u4F9B\u8D27\u5546\u6807\u7EFF\uFF0C\u62A5\u4EF7\u6761\u4EF6\u9010\u884C\u6838\u5BF9\u3002"))), /* @__PURE__ */ import_react2.default.createElement("aside", null, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-ticket" }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-label" }, "\u8BE2\u4EF7\u5355 \xB7 \u7EAF\u6587\u672C"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u9009\u597D\u660E\u7EC6\uFF0C\u76F4\u63A5\u590D\u5236"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u53D1\u9001\u5BF9\u8C61\uFF08\u4EC5\u7528\u4E8E\u5B58\u6863\uFF09", /* @__PURE__ */ import_react2.default.createElement("input", { placeholder: "\u4F8B\u5982\uFF1A\u5F20\u7ECF\u7406 / \u5FAE\u4FE1", value: recipient, onChange: (e) => setRecipient(e.target.value) })), /* @__PURE__ */ import_react2.default.createElement("textarea", { "aria-label": "\u8BE2\u4EF7\u6587\u672C", rows: 13, value: chosen.length ? text : "", placeholder: "\u52FE\u9009\u5DE6\u4FA7\u660E\u7EC6\u540E\uFF0C\u8BE2\u4EF7\u6587\u672C\u4F1A\u51FA\u73B0\u5728\u8FD9\u91CC\u3002\u53EA\u5305\u542B\u4EA7\u54C1\u9700\u6C42\uFF0C\u4E0D\u5305\u542B\u91C7\u8D2D\u5E95\u4EF7\u3002", onChange: (e) => setManual(e.target.value) }), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", disabled: !chosen.length || busy, onClick: () => act(copy) }, "\u590D\u5236\u7EAF\u6587\u672C\u5E76\u5B58\u6863"), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u590D\u5236\u540E\u81EA\u884C\u7C98\u8D34\u81F3\u5FAE\u4FE1\u6216\u7535\u5546\u5BA2\u670D\u3002\u53EF\u7F16\u8F91\u6587\u5B57\uFF1B\u8C03\u6574\u9009\u4E2D\u884C\u540E\u91CD\u65B0\u751F\u6210\u3002")), /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-notes" }, /* @__PURE__ */ import_react2.default.createElement("label", null, "\u63D0\u793A\u573A\u666F", /* @__PURE__ */ import_react2.default.createElement("select", { value: stage, onChange: (e) => setStage(e.target.value) }, ["\u5BFC\u5165", "\u8BE2\u4EF7", "\u56DE\u586B", "\u5BFC\u51FA"].map((s) => /* @__PURE__ */ import_react2.default.createElement("option", { key: s }, s)))), /* @__PURE__ */ import_react2.default.createElement("h3", null, "\u5F53\u524D\u6CE8\u610F\u4E8B\u9879"), alerts.length ? [...new Set(alerts)].map((a, i) => /* @__PURE__ */ import_react2.default.createElement("p", { key: i, className: "pw-alert" }, a)) : /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, chosen.length ? "\u6B64\u573A\u666F\u6CA1\u6709\u5339\u914D\u7684\u63D0\u9192\u3002" : "\u9009\u4E2D\u660E\u7EC6\u540E\u663E\u793A\u5339\u914D\u63D0\u9192\u3002")), channelTargets(chosen, data.suppliers).map((target) => /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-notes", key: target.key }, /* @__PURE__ */ import_react2.default.createElement("h3", null, target.label, " \xB7 \u5BFB\u627E\u6E20\u9053"), data.channels.filter((c) => !target.generic && canonical(c.brand, data.suppliers) === canonical(target.query, data.suppliers)).map((c, i) => /* @__PURE__ */ import_react2.default.createElement("p", { key: i }, /* @__PURE__ */ import_react2.default.createElement("a", { href: safeUrl(c.url), target: "_blank", rel: "noreferrer" }, c.name || c.kind || "\u5DF2\u8BB0\u5F55\u6E20\u9053"), /* @__PURE__ */ import_react2.default.createElement("small", null, c.kind, " \xB7 \u4EBA\u5DE5\u6838\u5B9E\u4E8E ", c.checkedAt, " \xB7 ", /* @__PURE__ */ import_react2.default.createElement("a", { href: safeUrl(c.source), target: "_blank", rel: "noreferrer" }, "\u6838\u5B9E\u6765\u6E90")))), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, target.generic ? "\u672A\u6307\u5B9A\u5177\u4F53\u54C1\u724C\uFF0C\u6309\u54C1\u540D\u548C\u89C4\u683C\u67E5\u627E\u4F9B\u8D27\u6E20\u9053\u3002" : "\u4EE5\u4E0B\u662F\u641C\u7D22\u5165\u53E3\uFF0C\u5C1A\u672A\u6838\u5B9E\u662F\u5426\u6709\u76F4\u8425\u5E97\u3002"), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-links" }, searchLinks(target.query, target.generic).map((c) => /* @__PURE__ */ import_react2.default.createElement("a", { key: c.name, href: c.url, target: "_blank", rel: "noreferrer" }, c.name, " \u2197")))))))) : tab === "history" ? /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-records" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8BE2\u4EF7\u8BB0\u5F55 ", /* @__PURE__ */ import_react2.default.createElement("small", null, history.length)), /* @__PURE__ */ import_react2.default.createElement("input", { placeholder: "\u641C\u7D22\u5BF9\u8C61\u6216\u8BE2\u4EF7\u5185\u5BB9", value: historyFilter, onChange: (e) => setHistoryFilter(e.target.value) }), history.filter((h) => `${h.recipient} ${h.text}`.includes(historyFilter)).map((h) => /* @__PURE__ */ import_react2.default.createElement("article", { key: h.id }, /* @__PURE__ */ import_react2.default.createElement("b", null, h.recipient), /* @__PURE__ */ import_react2.default.createElement("small", null, new Date(h.at).toLocaleString(), " \xB7 ", h.source), /* @__PURE__ */ import_react2.default.createElement("pre", null, h.text), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => act(async () => {
     await navigator.clipboard.writeText(h.text);
     setMessage("\u5DF2\u590D\u5236\u5386\u53F2\u8BE2\u4EF7\u6587\u672C\u3002");
-  }) }, "\u518D\u6B21\u590D\u5236"))), !history.length && /* @__PURE__ */ import_react.default.createElement("p", null, "\u590D\u5236\u8BE2\u4EF7\u6587\u672C\u540E\uFF0C\u4F1A\u5728\u8FD9\u91CC\u7559\u4E0B\u53EF\u641C\u7D22\u7684\u8BB0\u5F55\u3002")) : /* @__PURE__ */ import_react.default.createElement("section", { className: "pw-records" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react.default.createElement("h2", null, labels[tab], "\u8D44\u6599"), /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => act(async () => download(await catalogBook(schemas[tab]), `${labels[tab]}\u6A21\u677F.xlsx`)) }, "\u4E0B\u8F7D Excel \u6A21\u677F"), /* @__PURE__ */ import_react.default.createElement("label", { className: "pw-button" }, "\u5BFC\u5165 Excel / JSON", /* @__PURE__ */ import_react.default.createElement("input", { type: "file", accept: ".json,.xls,.xlsx", onChange: (e) => act(async () => {
+  }) }, "\u518D\u6B21\u590D\u5236"))), !history.length && /* @__PURE__ */ import_react2.default.createElement("p", null, "\u590D\u5236\u8BE2\u4EF7\u6587\u672C\u540E\uFF0C\u4F1A\u5728\u8FD9\u91CC\u7559\u4E0B\u53EF\u641C\u7D22\u7684\u8BB0\u5F55\u3002")) : /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-records" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, labels[tab], "\u8D44\u6599"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => act(async () => download(await catalogBook(schemas[tab]), `${labels[tab]}\u6A21\u677F.xlsx`)) }, "\u4E0B\u8F7D Excel \u6A21\u677F"), /* @__PURE__ */ import_react2.default.createElement("label", { className: "pw-button" }, "\u5BFC\u5165 Excel / JSON", /* @__PURE__ */ import_react2.default.createElement("input", { type: "file", accept: ".json,.xls,.xlsx", onChange: (e) => act(async () => {
     const f = e.target.files[0];
     if (!f) return;
     if (f.size > 20 * 1024 * 1024) throw Error("\u6587\u4EF6\u8D85\u8FC7 20 MB");
@@ -74024,26 +74141,26 @@ function App() {
     if (!confirm(`\u7528\u5BFC\u5165\u6587\u4EF6\u66FF\u6362\u5168\u90E8${labels[tab]}\u8D44\u6599\uFF1F`)) return;
     changeData(tab, list);
     setMessage("\u8D44\u6599\u5DF2\u5BFC\u5165\u3002");
-  }) })), /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => download(JSON.stringify(data[tab], null, 2), `${tab}.json`) }, "\u5BFC\u51FA\u8D44\u6599")), /* @__PURE__ */ import_react.default.createElement("p", { className: "muted" }, tab === "prices" ? "\u4EC5\u54C1\u724C\u3001\u578B\u53F7\u3001\u5355\u4F4D\u7CBE\u786E\u5339\u914D\uFF0C\u62A5\u4EF7\u552F\u4E00\u4E14\u6709\u6548\uFF0C\u8BA1\u4EF7\u6761\u4EF6\u5B8C\u6574\u65F6\u56DE\u586B\u3002\u4E0D\u4F1A\u8986\u76D6\u5DF2\u6709\u5355\u4EF7\u3002" : tab === "channels" ? "\u4FDD\u5B58\u5DF2\u4EBA\u5DE5\u6838\u5B9E\u7684\u5B98\u7F51\u6216\u5E97\u94FA\uFF0C\u5E76\u8BB0\u5F55\u6838\u5B9E\u6765\u6E90\u3002\u641C\u7D22\u7ED3\u679C\u4E0D\u80FD\u76F4\u63A5\u8BA4\u5B9A\u4E3A\u76F4\u8425\u5E97\u3002" : tab === "rules" ? "\u6309\u54C1\u724C\u3001\u5173\u952E\u8BCD\u548C\u64CD\u4F5C\u573A\u666F\u5339\u914D\uFF1B\u54C1\u724C\u548C\u5173\u952E\u8BCD\u7559\u7A7A\u65F6\u9002\u7528\u4E8E\u5168\u90E8\u660E\u7EC6\u3002" : "\u540C\u4E00\u54C1\u724C\u53EF\u4EE5\u6709\u591A\u5BB6\u4F9B\u8D27\u5546\u3002\u522B\u540D\u7528\u4E8E\u5173\u8054\u4E2D\u6587\u540D\u3001\u82F1\u6587\u540D\u6216\u7B80\u79F0\u3002"), /* @__PURE__ */ import_react.default.createElement("form", { onSubmit: (e) => {
+  }) })), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => download(JSON.stringify(data[tab], null, 2), `${tab}.json`) }, "\u5BFC\u51FA\u8D44\u6599")), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, tab === "prices" ? "\u4EC5\u54C1\u724C\u3001\u578B\u53F7\u3001\u5355\u4F4D\u7CBE\u786E\u5339\u914D\uFF0C\u62A5\u4EF7\u552F\u4E00\u4E14\u6709\u6548\uFF0C\u8BA1\u4EF7\u6761\u4EF6\u5B8C\u6574\u65F6\u56DE\u586B\u3002\u4E0D\u4F1A\u8986\u76D6\u5DF2\u6709\u5355\u4EF7\u3002" : tab === "channels" ? "\u4FDD\u5B58\u5DF2\u4EBA\u5DE5\u6838\u5B9E\u7684\u5B98\u7F51\u6216\u5E97\u94FA\uFF0C\u5E76\u8BB0\u5F55\u6838\u5B9E\u6765\u6E90\u3002\u641C\u7D22\u7ED3\u679C\u4E0D\u80FD\u76F4\u63A5\u8BA4\u5B9A\u4E3A\u76F4\u8425\u5E97\u3002" : tab === "rules" ? "\u6309\u54C1\u724C\u3001\u5173\u952E\u8BCD\u548C\u64CD\u4F5C\u573A\u666F\u5339\u914D\uFF1B\u54C1\u724C\u548C\u5173\u952E\u8BCD\u7559\u7A7A\u65F6\u9002\u7528\u4E8E\u5168\u90E8\u660E\u7EC6\u3002" : "\u540C\u4E00\u54C1\u724C\u53EF\u4EE5\u6709\u591A\u5BB6\u4F9B\u8D27\u5546\u3002\u522B\u540D\u7528\u4E8E\u5173\u8054\u4E2D\u6587\u540D\u3001\u82F1\u6587\u540D\u6216\u7B80\u79F0\u3002"), /* @__PURE__ */ import_react2.default.createElement("form", { onSubmit: (e) => {
     e.preventDefault();
     act(recordForm);
-  } }, /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).map(([k, l]) => /* @__PURE__ */ import_react.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react.default.createElement("input", { value: form[k] ?? "", onChange: (e) => setForm({ ...form, [k]: e.target.value }) })))), /* @__PURE__ */ import_react.default.createElement("button", { className: "primary" }, edit === null ? "\u6DFB\u52A0\u8D44\u6599" : "\u4FDD\u5B58\u4FEE\u6539"), edit !== null && /* @__PURE__ */ import_react.default.createElement("button", { type: "button", onClick: () => {
+  } }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement("input", { value: form[k] ?? "", onChange: (e) => setForm({ ...form, [k]: e.target.value }) })))), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary" }, edit === null ? "\u6DFB\u52A0\u8D44\u6599" : "\u4FDD\u5B58\u4FEE\u6539"), edit !== null && /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", onClick: () => {
     setEdit(null);
     setForm({});
-  } }, "\u53D6\u6D88\u7F16\u8F91")), data[tab].map((r, i) => /* @__PURE__ */ import_react.default.createElement("article", { key: r.id || i }, /* @__PURE__ */ import_react.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).filter(([k]) => r[k]).map(([k, l]) => /* @__PURE__ */ import_react.default.createElement("div", { key: k }, /* @__PURE__ */ import_react.default.createElement("small", null, l), /* @__PURE__ */ import_react.default.createElement("span", null, r[k])))), /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => {
+  } }, "\u53D6\u6D88\u7F16\u8F91")), data[tab].map((r, i) => /* @__PURE__ */ import_react2.default.createElement("article", { key: r.id || i }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).filter(([k]) => r[k]).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("div", { key: k }, /* @__PURE__ */ import_react2.default.createElement("small", null, l), /* @__PURE__ */ import_react2.default.createElement("span", null, r[k])))), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
     setForm(r);
     setEdit(i);
-  } }, "\u7F16\u8F91"), /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => {
+  } }, "\u7F16\u8F91"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
     if (confirm("\u5220\u9664\u8FD9\u6761\u8D44\u6599\uFF1F")) {
       setData({ ...data, [tab]: data[tab].filter((_, n) => n !== i) });
       setEdit(null);
       setForm({});
     }
-  } }, "\u5220\u9664"))), !data[tab].length && /* @__PURE__ */ import_react.default.createElement("p", { className: "pw-empty" }, "\u5C1A\u65E0", labels[tab], "\u8D44\u6599\u3002\u53EF\u9010\u6761\u6DFB\u52A0\uFF0C\u6216\u4F7F\u7528 templates \u76EE\u5F55\u4E2D\u7684 JSON \u6A21\u677F\u5BFC\u5165\u3002")), /* @__PURE__ */ import_react.default.createElement("footer", null, "\u8D44\u6599\u4FDD\u5B58\u5728\u5F53\u524D\u684C\u9762\u7AEF / \u6D4F\u89C8\u5668\u7684\u672C\u5730\u5B58\u50A8\u4E2D\uFF0C\u8BF7\u5B9A\u671F\u5BFC\u51FA\u5907\u4EFD\u3002\u6574\u7406\u7248\u4FDD\u7559\u6620\u5C04\u5B57\u6BB5\u53CA\u6709\u8868\u5934\u7684\u5176\u4ED6\u539F\u59CB\u5217\uFF0C\u4E0D\u4FDD\u7559\u539F\u8868\u6837\u5F0F\u3001\u516C\u5F0F\u548C\u5176\u4ED6\u5DE5\u4F5C\u8868\u3002"));
+  } }, "\u5220\u9664"))), !data[tab].length && /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-empty" }, "\u5C1A\u65E0", labels[tab], "\u8D44\u6599\u3002\u53EF\u9010\u6761\u6DFB\u52A0\uFF0C\u6216\u4F7F\u7528 templates \u76EE\u5F55\u4E2D\u7684 JSON \u6A21\u677F\u5BFC\u5165\u3002"))), /* @__PURE__ */ import_react2.default.createElement("footer", null, "\u8D44\u6599\u5199\u5165\u6240\u9009\u76EE\u5F55\u7684 procurement-workbench.json\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002\u6574\u7406\u7248\u4FDD\u7559\u6620\u5C04\u5B57\u6BB5\u53CA\u6709\u8868\u5934\u7684\u5176\u4ED6\u539F\u59CB\u5217\uFF0C\u4E0D\u4FDD\u7559\u539F\u8868\u6837\u5F0F\u3001\u516C\u5F0F\u548C\u5176\u4ED6\u5DE5\u4F5C\u8868\u3002"));
 }
 
 // src/preview.jsx
-(0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ import_react2.default.createElement(App, null));
+(0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ import_react3.default.createElement(App, null));
 /*! Bundled license information:
 
 react/cjs/react.development.js:

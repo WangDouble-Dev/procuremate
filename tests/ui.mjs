@@ -1,14 +1,20 @@
+import {startPreview} from './preview-fixture.mjs';
 import {chromium} from '@playwright/test';
 import {exportBook} from '../src/excel.mjs';
 import {writeFile,mkdir} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 await mkdir('test-results',{recursive:true});
 await writeFile('test-results/需求.xlsx',await exportBook([{brand:'示例品牌',name:'压力传感器',model:'001-A',quantity:'2',unit:'个'},{brand:'待查品牌',name:'过滤器',model:'F-20',quantity:'5',unit:'只'}]));
+const fixture=await startPreview();
 const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:1080},permissions:['clipboard-read','clipboard-write']});
 const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
-await page.goto('http://127.0.0.1:4173');
-await page.evaluate(()=>{localStorage.setItem('dsh-procurement-workbench:v1',JSON.stringify({version:1,rows:[],history:[],data:{suppliers:[{brand:'示例品牌',name:'示例供货商',wechat:'demo_wechat'}],prices:[{brand:'示例品牌',model:'001-A',unit:'个',price:100,supplier:'示例供货商',currency:'CNY',tax:'含税',freight:'运费另计',validUntil:'2099-12-31'}],channels:[],rules:[{brand:'示例品牌',stage:'询价',message:'请确认型号后缀和货期。'}]}}));});await page.reload();
+try{
+await mkdir(fixture.dataDir,{recursive:true});
+await writeFile(fixture.dataDir+'/procurement-workbench.json',JSON.stringify({version:1,rows:[],history:[],data:{suppliers:[{brand:'示例品牌',name:'示例供货商',wechat:'demo_wechat'}],prices:[{brand:'示例品牌',model:'001-A',unit:'个',price:100,supplier:'示例供货商',currency:'CNY',tax:'含税',freight:'运费另计',validUntil:'2099-12-31'}],channels:[],rules:[{brand:'示例品牌',stage:'询价',message:'请确认型号后缀和货期。'}]}}));
+await page.goto(fixture.url);
+await page.locator('.pw-storage-status').filter({hasText:'已保存到文件'}).waitFor();
+
 await page.locator('input[type=file][accept=".xls,.xlsx"]').setInputFiles('test-results/需求.xlsx');await page.getByRole('button',{name:'确认导入',exact:true}).click();
 await page.getByRole('checkbox',{name:'选择 001-A',exact:true}).check();
 await page.getByRole('button',{name:'回填选中行价格'}).click();assert.equal(await page.getByRole('textbox',{name:'001-A 单价',exact:true}).inputValue(),'100');
@@ -23,4 +29,6 @@ await page.getByRole('button',{name:/^价格表/}).click();const template=page.w
 await page.getByRole('button',{name:/^注意事项/}).click();await page.getByLabel('提醒内容',{exact:true}).fill('新增验收提醒');await page.getByLabel('场景：全部、导入、询价、回填、导出',{exact:true}).fill('全部');await page.getByRole('button',{name:'添加资料'}).click();await page.getByText('新增验收提醒',{exact:true}).waitFor();
 await page.getByRole('button',{name:'采购明细',exact:true}).click();
 await page.setViewportSize({width:390,height:844});await page.screenshot({path:'test-results/移动布局.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-assert.deepEqual(errors,[]);await browser.close();console.log('UI PASS: XLSX 导入、匹配、回填、纯文本剪贴板、提醒、渠道、导出、历史、重载持久化、窄屏布局');
+assert.deepEqual(errors,[]);console.log('UI PASS: XLSX 导入、匹配、回填、纯文本剪贴板、提醒、渠道、导出、历史、重载持久化、窄屏布局');
+
+}finally{await browser.close();await fixture.close();}

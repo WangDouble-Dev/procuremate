@@ -1,6 +1,6 @@
 {
   "name": "dsh-procurement-workbench",
-  "version": "0.1.1",
+  "version": "0.2.2",
   "type": "module",
   "description": "个人采购工作台：Excel 询价、合作供货商、价格回填与场景提醒",
   "exports": {

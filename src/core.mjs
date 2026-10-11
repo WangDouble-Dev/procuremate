@@ -18,7 +18,18 @@ export function quoteFor(row, data, date=today()) {
  return {reason:valid.length>1?'多个有效报价，请先整理价格表':candidates.length?'报价过期、税务口径/币种/起订量不符或计价条件不完整':'无匹配价格'};
 }
 export function reminders(row,data,stage) {return data.rules.filter(r=>(!r.stage||r.stage==='全部'||r.stage===stage)&&(!r.brand||canonical(r.brand,data.suppliers)===canonical(row.brand,data.suppliers))&&(!r.keyword||normalize(`${row.name} ${row.model} ${row.note}`).includes(normalize(r.keyword)))&&(!r.noSupplier||!suppliersFor(row,data.suppliers).length));}
-export function inquiry(rows) {return '您好，请帮忙报价以下产品：\n\n'+rows.map((r,i)=>`${i+1}. 品牌：${clean(r.brand)||'待确认'}；品名：${clean(r.name)||'—'}；型号：${clean(r.model)||'待确认'}；数量：${clean(r.quantity)||'待确认'} ${clean(r.unit)}${r.materialCode?'；物料编码：'+clean(r.materialCode):''}${r.note?'；备注：'+clean(r.note):''}`).join('\n')+'\n\n请注明含税单价、运费、货期、报价有效期及是否原装正品。谢谢。';}
+export function inquiry(rows) {
+ const items=rows.map((r,i)=>[
+  `【序号】${i+1}`,
+  `【品牌】${clean(r.brand)||'待确认'}`,
+  `【品名】${clean(r.name)||'—'}`,
+  `【型号 / 规格】\n${clean(r.model)||'待确认'}`,
+  `【数量】${[clean(r.quantity)||'待确认',clean(r.unit)].filter(Boolean).join(' ')}`,
+  ...(r.materialCode?[`【物料编码】${clean(r.materialCode)}`]:[]),
+  ...(r.note?[`【备注】${clean(r.note)}`]:[]),
+ ].join('\n'));
+ return '您好，请帮忙报价以下产品：\n\n'+items.join('\n\n──────────\n\n')+'\n\n请注明含税单价、运费、货期、报价有效期及是否原装正品。谢谢。';
+}
 export function searchLinks(brand, generic=false) {const q=encodeURIComponent(clean(brand)); return [{name:'淘宝搜索',url:`https://s.taobao.com/search?q=${q}`},{name:'京东搜索',url:`https://search.jd.com/Search?keyword=${q}`},{name:'1688 搜索',url:`https://s.1688.com/selloffer/offer_search.htm?keywords=${q}`},{name:generic?'查找供货渠道':'查找官网',url:`https://www.bing.com/search?q=${encodeURIComponent(clean(brand)+(generic?' 供应商 联系方式':' 官方网站 官方直营 联系方式'))}`} ];}
 export function safeUrl(value) {try {let u=new URL(value); return ['https:','http:'].includes(u.protocol)?u.href:null;}catch{return null;}}
 export const emptyData=()=>({suppliers:[],prices:[],channels:[],rules:[]});
