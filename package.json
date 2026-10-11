@@ -1,6 +1,6 @@
 {
   "name": "dsh-procurement-workbench",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "个人采购工作台：Excel 询价、合作供货商、价格回填与场景提醒",
   "exports": {
@@ -32,11 +32,12 @@
     "preview": "node scripts/preview.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.0",
     "esbuild": "0.25.10",
+    "exceljs": "4.4.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "exceljs": "4.4.0",
-    "@playwright/test": "1.56.0"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "overrides": {
     "exceljs": {

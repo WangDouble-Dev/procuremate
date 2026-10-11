@@ -9,7 +9,7 @@ const context=await browser.newContext({viewport:{width:1440,height:1080},permis
 const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
 await page.goto('http://127.0.0.1:4173');
 await page.evaluate(()=>{localStorage.setItem('dsh-procurement-workbench:v1',JSON.stringify({version:1,rows:[],history:[],data:{suppliers:[{brand:'示例品牌',name:'示例供货商',wechat:'demo_wechat'}],prices:[{brand:'示例品牌',model:'001-A',unit:'个',price:100,supplier:'示例供货商',currency:'CNY',tax:'含税',freight:'运费另计',validUntil:'2099-12-31'}],channels:[],rules:[{brand:'示例品牌',stage:'询价',message:'请确认型号后缀和货期。'}]}}));});await page.reload();
-await page.locator('input[type=file][accept=".xlsx"]').setInputFiles('test-results/需求.xlsx');await page.getByRole('button',{name:'确认导入',exact:true}).click();
+await page.locator('input[type=file][accept=".xls,.xlsx"]').setInputFiles('test-results/需求.xlsx');await page.getByRole('button',{name:'确认导入',exact:true}).click();
 await page.getByRole('checkbox',{name:'选择 001-A',exact:true}).check();
 await page.getByRole('button',{name:'回填选中行价格'}).click();assert.equal(await page.getByRole('textbox',{name:'001-A 单价',exact:true}).inputValue(),'100');
 await page.getByRole('button',{name:'复制纯文本并存档'}).click();await page.getByRole('status').filter({hasText:'已复制纯文本'}).waitFor();const text=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(text.includes('001-A'));assert.ok(!text.includes('100'));assert.ok(!text.includes('demo_wechat'));

@@ -1,4 +1,4 @@
-export const fields = {brand:'品牌',name:'品名',model:'型号',quantity:'数量',unit:'单位',note:'备注',price:'单价'};
+export const fields = {brand:'品牌',name:'品名',model:'型号',quantity:'数量',unit:'单位',note:'备注',price:'单价',materialCode:'物料编码'};
 export const normalize = v => String(v ?? '').normalize('NFKC').trim().toLowerCase();
 export const clean = v => String(v ?? '').replace(/[\r\n\t]+/g,' ').trim();
 export function validDate(v) {if(!/^\d{4}-\d{2}-\d{2}$/.test(v||''))return false;const d=new Date(v+'T00:00:00Z');return !Number.isNaN(d.valueOf())&&d.toISOString().slice(0,10)===v;}
@@ -7,17 +7,19 @@ export function canonical(brand, suppliers) {
  const n=normalize(brand); const hits=new Set(suppliers.filter(s=>[s.brand,...String(s.aliases||'').split(/[|，,]/)].some(b=>normalize(b)===n && n)).map(s=>normalize(s.brand)));
  return hits.size===1?[...hits][0]:n;
 }
-export function suppliersFor(row, suppliers) {const b=canonical(row.brand,suppliers); return b?suppliers.filter(s=>normalize(s.brand)===b):[];}
+export function isGenericBrand(brand) {return ['', '不限','不限品牌','品牌不限','市场件','其他','其它','无品牌','通用'].includes(normalize(brand));}
+export function suppliersFor(row, suppliers) {if(isGenericBrand(row.brand))return [];const b=canonical(row.brand,suppliers); return b?suppliers.filter(s=>normalize(s.brand)===b):[];}
 export function quoteFor(row, data, date=today()) {
+ if(isGenericBrand(row.brand))return {reason:'未指定具体品牌，请人工确认报价'};
  if(!row.brand||!row.model||!row.unit) return {reason:'缺少品牌、型号或单位'};
  const candidates=data.prices.filter(p=>canonical(p.brand,data.suppliers)===canonical(row.brand,data.suppliers)&&normalize(p.model)===normalize(row.model)&&normalize(p.unit)===normalize(row.unit));
- const valid=candidates.filter(p=>validDate(p.validUntil)&&p.validUntil>=date&&(!p.validFrom||(validDate(p.validFrom)&&p.validFrom<=date))&&p.price!==''&&Number.isFinite(Number(p.price))&&Number(p.price)>=0&&['含税','未税'].includes(p.tax)&&p.currency&&p.supplier&&p.freight&&Number(row.quantity)>0&&Number(row.quantity)>=Number(p.minQty||1));
+ const valid=candidates.filter(p=>validDate(p.validUntil)&&p.validUntil>=date&&(!p.validFrom||(validDate(p.validFrom)&&p.validFrom<=date))&&p.price!==''&&Number.isFinite(Number(p.price))&&Number(p.price)>=0&&['含税','未税'].includes(p.tax)&&(!row.taxBasis||p.tax===row.taxBasis)&&(!row.currencyBasis||normalize(p.currency)===normalize(row.currencyBasis))&&p.currency&&p.supplier&&p.freight&&Number(row.quantity)>0&&Number(row.quantity)>=Number(p.minQty||1));
  if(valid.length===1) return {quote:valid[0],reason:'可回填'};
- return {reason:valid.length>1?'多个有效报价，请先整理价格表':candidates.length?'报价过期、起订量不符或计价条件不完整':'无匹配价格'};
+ return {reason:valid.length>1?'多个有效报价，请先整理价格表':candidates.length?'报价过期、税务口径/币种/起订量不符或计价条件不完整':'无匹配价格'};
 }
 export function reminders(row,data,stage) {return data.rules.filter(r=>(!r.stage||r.stage==='全部'||r.stage===stage)&&(!r.brand||canonical(r.brand,data.suppliers)===canonical(row.brand,data.suppliers))&&(!r.keyword||normalize(`${row.name} ${row.model} ${row.note}`).includes(normalize(r.keyword)))&&(!r.noSupplier||!suppliersFor(row,data.suppliers).length));}
-export function inquiry(rows) {return '您好，请帮忙报价以下产品：\n\n'+rows.map((r,i)=>`${i+1}. 品牌：${clean(r.brand)||'待确认'}；品名：${clean(r.name)||'—'}；型号：${clean(r.model)||'待确认'}；数量：${clean(r.quantity)||'待确认'} ${clean(r.unit)}${r.note?'；备注：'+clean(r.note):''}`).join('\n')+'\n\n请注明含税单价、运费、货期、报价有效期及是否原装正品。谢谢。';}
-export function searchLinks(brand) {const q=encodeURIComponent(clean(brand)); return [{name:'淘宝搜索',url:`https://s.taobao.com/search?q=${q}`},{name:'京东搜索',url:`https://search.jd.com/Search?keyword=${q}`},{name:'1688 搜索',url:`https://s.1688.com/selloffer/offer_search.htm?keywords=${q}`},{name:'查找官网',url:`https://www.bing.com/search?q=${encodeURIComponent(clean(brand)+' 官方网站 官方直营 联系方式')}`}];}
+export function inquiry(rows) {return '您好，请帮忙报价以下产品：\n\n'+rows.map((r,i)=>`${i+1}. 品牌：${clean(r.brand)||'待确认'}；品名：${clean(r.name)||'—'}；型号：${clean(r.model)||'待确认'}；数量：${clean(r.quantity)||'待确认'} ${clean(r.unit)}${r.materialCode?'；物料编码：'+clean(r.materialCode):''}${r.note?'；备注：'+clean(r.note):''}`).join('\n')+'\n\n请注明含税单价、运费、货期、报价有效期及是否原装正品。谢谢。';}
+export function searchLinks(brand, generic=false) {const q=encodeURIComponent(clean(brand)); return [{name:'淘宝搜索',url:`https://s.taobao.com/search?q=${q}`},{name:'京东搜索',url:`https://search.jd.com/Search?keyword=${q}`},{name:'1688 搜索',url:`https://s.1688.com/selloffer/offer_search.htm?keywords=${q}`},{name:generic?'查找供货渠道':'查找官网',url:`https://www.bing.com/search?q=${encodeURIComponent(clean(brand)+(generic?' 供应商 联系方式':' 官方网站 官方直营 联系方式'))}`} ];}
 export function safeUrl(value) {try {let u=new URL(value); return ['https:','http:'].includes(u.protocol)?u.href:null;}catch{return null;}}
 export const emptyData=()=>({suppliers:[],prices:[],channels:[],rules:[]});
 export function validateData(d) {
@@ -30,3 +32,5 @@ export function validateData(d) {
  for(const r of d.rules) if(!r.message||!['全部','导入','询价','回填','导出'].includes(r.stage||'全部')) throw Error('提醒必须填写内容和有效场景');
  return d;
 }
+
+export function channelTargets(rows,suppliers){const targets=new Map();for(const row of rows){if(suppliersFor(row,suppliers).length)continue;const generic=isGenericBrand(row.brand),query=generic?[row.name,row.model].filter(Boolean).join(' '):row.brand;if(!query)continue;const key=(generic?'item:':'brand:')+query;targets.set(key,{key,query,generic,label:generic?row.name||row.model:row.brand});}return [...targets.values()];}
