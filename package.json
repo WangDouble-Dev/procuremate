@@ -1,6 +1,6 @@
 {
   "name": "dsh-procurement-workbench",
-  "version": "0.2.2",
+  "version": "0.3.3",
   "type": "module",
   "description": "个人采购工作台：Excel 询价、合作供货商、价格回填与场景提醒",
   "exports": {
@@ -12,7 +12,8 @@
     "cordis.patch.yml",
     "README.md",
     "templates",
-    "VALIDATION.md"
+    "VALIDATION.md",
+    "COMPATIBILITY.md"
   ],
   "dsh": {
     "bundle": {

@@ -1,3 +1,4 @@
+import {openWorkbook,saveWorkbook} from './workbook-writer.mjs';
 import {readFile,mkdir,open,rename,unlink} from 'node:fs/promises';
 import {join,dirname,isAbsolute,normalize} from 'node:path';
 import {homedir} from 'node:os';
@@ -7,19 +8,19 @@ import {emptyData,validateData} from './core.mjs';
 export const DATA_FILE='procurement-workbench.json';
 export const defaultConfigPath=()=>join(homedir(),'.config','dsh-procurement-workbench','storage.json');
 export const defaultDirectory=()=>join(homedir(),'buyer','data');
-export const blankPayload=()=>({version:1,data:emptyData(),rows:[],history:[]});
+export const blankPayload=()=>({version:1,data:emptyData()});
 function fail(message,status=400){return Object.assign(new Error(message),{status});}
 export function validatePayload(p){
- if(!p||p.version!==1||!Array.isArray(p.rows)||!Array.isArray(p.history))throw fail('数据文件格式不正确：缺少资料、采购明细或询价记录。');
+ if(!p||p.version!==1)throw fail('数据文件格式不正确：缺少资料或采购明细。');
  validateData(p.data);
- if(p.rows.some(r=>!r||typeof r!=='object'||Array.isArray(r))||p.history.some(r=>!r||typeof r!=='object'||Array.isArray(r)))throw fail('明细和记录必须是对象列表。');
- if(JSON.stringify(p).length>20*1024*1024)throw fail('资料超过 20 MB，请先精简历史记录。',413);
- return p;
+
+ if(JSON.stringify(p).length>20*1024*1024)throw fail('资料超过 20 MB，请先精简资料。',413);
+ return {version:1,data:p.data};
 }
 function directoryPath(value){
  if(typeof value!=='string'||!value.trim())throw fail('请填写绝对目录路径。');
  const s=value.trim().replace(/^~(?=[/\\]|$)/,homedir());
- if(!isAbsolute(s))throw fail('请填写绝对目录路径，例如 /Users/double/buyer/data/。');
+ if(!isAbsolute(s))throw fail('请填写本机绝对目录路径，例如 Windows 的 D:\\采购资料 或 macOS 的 /Users/用户名/buyer/data。');
  return normalize(s);
 }
 async function readOptional(path){try{return await readFile(path,'utf8');}catch(e){if(e.code==='ENOENT')return null;throw e;}}
@@ -59,7 +60,7 @@ export function createStorage({configPath=defaultConfigPath(),dataDir=defaultDir
  function expectRevision(current,expected){if(current.revision!==expected)throw fail('资料已被其他窗口修改，或保存目录已经改变。当前修改尚未保存，请先导出当前资料，再重新载入。',409);}
  return {
   read:()=>withLock(async()=>snapshot(await activeDirectory())),
-  save:(payload,expected)=>withLock(async()=>{validatePayload(payload);const current=await snapshot(await activeDirectory());expectRevision(current,expected);await atomicWrite(current.file,payload);return snapshot(current.directory);}),
+  save:(payload,expected)=>withLock(async()=>{payload=validatePayload(payload);const current=await snapshot(await activeDirectory());expectRevision(current,expected);await atomicWrite(current.file,payload);return snapshot(current.directory);}),
   changeDirectory:(requested,mode,expected)=>withLock(async()=>{
    if(!['copy','open'].includes(mode))throw fail('请选择复制当前资料或使用目标目录资料。');
    const directory=directoryPath(requested),current=await snapshot(await activeDirectory());expectRevision(current,expected);
@@ -96,9 +97,9 @@ export function createStorageHandler(store){return async(req,res)=>{
  res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');
  try{
   checkRequest(req);let result;
-  if(req.method==='GET')result=await store.read();
+  if(req.method==='GET')result={...await store.read(),capabilities:{openExcel:true,saveExcel:true},apiVersion:2};
   else if(req.method==='PUT'){const body=await bodyOf(req);result=await store.save(body.payload,body.revision);}
-  else if(req.method==='POST'){const body=await bodyOf(req);result=await store.changeDirectory(body.directory,body.mode,body.revision);}
+  else if(req.method==='POST'){const body=await bodyOf(req);if(body.action==='openExcel')result=await openWorkbook(body.path);else if(body.action==='saveExcel')result=await saveWorkbook(body);else if(!body.action&&['copy','open'].includes(body.mode))result=await store.changeDirectory(body.directory,body.mode,body.revision);else throw fail('无法识别此操作，请更新插件并重启 DeepSeek Harness。');}
   else throw fail('不支持此操作。',405);
   res.writeHead(200).end(JSON.stringify(result));
  }catch(e){res.writeHead(e.status||500).end(JSON.stringify({error:e.code?`文件操作失败（${e.code}）：${e.message}`:e.message}));}

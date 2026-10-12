@@ -1,0 +1,11 @@
+import {chromium,expect} from '@playwright/test';import {readFile,mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';import ExcelJS from 'exceljs';import {startPreview} from './preview-fixture.mjs';
+const f=await startPreview(),browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+try{
+ const path=f.root+'/原表.xlsx',b=new ExcelJS.Workbook(),s=b.addWorksheet('采购');s.addRow(['品牌','型号','数量','单价','需求公司']);s.addRow(['ABC','A',1,10,'武汉吉利汽车部件有限公司']);await b.xlsx.writeFile(path);
+ await mkdir(f.dataDir,{recursive:true});const dataFile=f.dataDir+'/procurement-workbench.json';await writeFile(dataFile,JSON.stringify({version:1,data:{suppliers:[],prices:[],channels:[],rules:[]}}));
+ const page=await browser.newPage();let fail=false,writes=0;
+ await page.route('**/procurement-workbench/api',async route=>{const req=route.request();if(req.method()==='POST'){const body=req.postDataJSON();if(body.action==='openExcel')return route.continue({postData:JSON.stringify({...body,path})});if(body.action==='saveExcel'){writes++;if(fail)return route.fulfill({status:500,contentType:'application/json',body:'{"error":"测试写入失败"}'});}}return route.continue();});
+ await page.goto(f.url);await page.getByRole('button',{name:'打开原 Excel',exact:true}).click();await page.getByRole('button',{name:'确认导入',exact:true}).click();const input=page.getByRole('textbox',{name:'A 单价',exact:true});await expect(input).toHaveValue('10');await input.fill('22');assert.equal(writes,0);await input.blur();await expect(page.getByText('单价已写入：'+path,{exact:true})).toBeVisible();let book=new ExcelJS.Workbook();await book.xlsx.readFile(path);assert.equal(book.worksheets[0].getCell('D2').value,22);assert.ok(!('rows' in JSON.parse(await readFile(dataFile,'utf8'))));
+ fail=true;await input.fill('23');await input.blur();await expect(page.getByRole('alert')).toContainText('测试写入失败');await expect(input).toHaveValue('23');fail=false;await page.getByRole('button',{name:'重试写入 Excel',exact:true}).click();await expect(page.getByRole('alert')).toHaveCount(0);book=new ExcelJS.Workbook();await book.xlsx.readFile(path);assert.equal(book.worksheets[0].getCell('D2').value,23);
+ console.log('原表 UI PASS：打开、定位单价列、失焦写回、失败保留重试、JSON 不存明细。');
+}finally{await browser.close();await f.close();}

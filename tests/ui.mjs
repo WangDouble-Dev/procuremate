@@ -4,7 +4,7 @@ import {exportBook} from '../src/excel.mjs';
 import {writeFile,mkdir} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 await mkdir('test-results',{recursive:true});
-await writeFile('test-results/需求.xlsx',await exportBook([{brand:'示例品牌',name:'压力传感器',model:'001-A',quantity:'2',unit:'个'},{brand:'待查品牌',name:'过滤器',model:'F-20',quantity:'5',unit:'只'}]));
+await writeFile('test-results/需求.xlsx',await exportBook([{company:'武汉吉利汽车部件有限公司',brand:'示例品牌',name:'压力传感器',model:'001-A',quantity:'2',unit:'个'},{company:'武汉吉利汽车部件有限公司',brand:'待查品牌',name:'过滤器',model:'F-20',quantity:'5',unit:'只'}]));
 const fixture=await startPreview();
 const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:1080},permissions:['clipboard-read','clipboard-write']});
@@ -15,20 +15,21 @@ await writeFile(fixture.dataDir+'/procurement-workbench.json',JSON.stringify({ve
 await page.goto(fixture.url);
 await page.locator('.pw-storage-status').filter({hasText:'已保存到文件'}).waitFor();
 
-await page.locator('input[type=file][accept=".xls,.xlsx"]').setInputFiles('test-results/需求.xlsx');await page.getByRole('button',{name:'确认导入',exact:true}).click();
+await page.route('**/procurement-workbench/api',async route=>{if(route.request().method()==='POST'&&route.request().postDataJSON().action==='openExcel')return route.continue({postData:JSON.stringify({action:'openExcel',path:process.cwd()+'/test-results/需求.xlsx'})});return route.continue();});await page.getByRole('button',{name:'打开原 Excel',exact:true}).click();await page.getByRole('button',{name:'确认导入',exact:true}).click();
 await page.getByRole('checkbox',{name:'选择 001-A',exact:true}).check();
 await page.getByRole('button',{name:'回填选中行价格'}).click();assert.equal(await page.getByRole('textbox',{name:'001-A 单价',exact:true}).inputValue(),'100');
-await page.getByRole('button',{name:'复制纯文本并存档'}).click();await page.getByRole('status').filter({hasText:'已复制纯文本'}).waitFor();const text=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(text.includes('001-A'));assert.ok(!text.includes('100'));assert.ok(!text.includes('demo_wechat'));
+await page.getByRole('button',{name:'复制询价文本'}).click();await page.getByRole('status').filter({hasText:'已复制纯文本'}).waitFor();const text=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(text.includes('001-A'));assert.ok(text.includes('【品牌】示例品牌'));assert.ok(text.includes('发往湖北省'));assert.ok(text.includes('含税含运费'));assert.ok(text.includes('13% 增值税专用发票'));assert.ok(!text.includes('100'));assert.ok(!text.includes('demo_wechat'));
 await page.getByText('示例品牌 001-A：请确认型号后缀和货期。',{exact:true}).waitFor();
 await page.getByRole('checkbox',{name:'选择 F-20',exact:true}).check();await page.getByRole('link',{name:'淘宝搜索'}).waitFor();
 const dl=page.waitForEvent('download');await page.getByRole('button',{name:'导出整理版',exact:true}).click();await (await dl).saveAs('test-results/整理版.xlsx');
 await page.screenshot({path:'test-results/工作台.png',fullPage:true});
-await page.getByRole('button',{name:'询价记录',exact:true}).click();await page.getByRole('button',{name:'再次复制',exact:true}).waitFor();
-await page.reload();await page.getByRole('textbox',{name:'001-A 单价',exact:true}).waitFor();assert.equal(await page.getByRole('textbox',{name:'001-A 单价',exact:true}).inputValue(),'100');
+assert.equal(await page.getByRole('button',{name:'询价记录',exact:true}).count(),0);
+await page.getByText('单价已写入：'+process.cwd()+'/test-results/需求.xlsx',{exact:true}).waitFor();assert.equal(await page.getByRole('textbox',{name:'001-A 单价',exact:true}).inputValue(),'100');
+assert.equal(await page.getByLabel('收货省份',{exact:true}).count(),0);
 await page.getByRole('button',{name:/^价格表/}).click();const template=page.waitForEvent('download');await page.getByRole('button',{name:'下载 Excel 模板'}).click();await (await template).saveAs('test-results/价格模板.xlsx');
 await page.getByRole('button',{name:/^注意事项/}).click();await page.getByLabel('提醒内容',{exact:true}).fill('新增验收提醒');await page.getByLabel('场景：全部、导入、询价、回填、导出',{exact:true}).fill('全部');await page.getByRole('button',{name:'添加资料'}).click();await page.getByText('新增验收提醒',{exact:true}).waitFor();
 await page.getByRole('button',{name:'采购明细',exact:true}).click();
 await page.setViewportSize({width:390,height:844});await page.screenshot({path:'test-results/移动布局.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-assert.deepEqual(errors,[]);console.log('UI PASS: XLSX 导入、匹配、回填、纯文本剪贴板、提醒、渠道、导出、历史、重载持久化、窄屏布局');
+assert.deepEqual(errors,[]);console.log('UI PASS: XLSX 导入、匹配、回填、纯文本剪贴板、提醒、渠道、导出、收货省份与税运要求、重载持久化、窄屏布局');
 
 }finally{await browser.close();await fixture.close();}
