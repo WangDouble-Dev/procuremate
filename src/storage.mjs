@@ -1,4 +1,4 @@
-import {openWorkbook,saveWorkbook} from './workbook-writer.mjs';
+import {openWorkbook} from './workbook-writer.mjs';
 import {readFile,mkdir,open,rename,unlink} from 'node:fs/promises';
 import {join,dirname,isAbsolute,normalize} from 'node:path';
 import {homedir} from 'node:os';
@@ -97,9 +97,9 @@ export function createStorageHandler(store){return async(req,res)=>{
  res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');
  try{
   checkRequest(req);let result;
-  if(req.method==='GET')result={...await store.read(),capabilities:{openExcel:true,saveExcel:true},apiVersion:2};
+  if(req.method==='GET')result={...await store.read(),capabilities:{openExcel:true,saveExcel:false},apiVersion:2};
   else if(req.method==='PUT'){const body=await bodyOf(req);result=await store.save(body.payload,body.revision);}
-  else if(req.method==='POST'){const body=await bodyOf(req);if(body.action==='openExcel')result=await openWorkbook(body.path);else if(body.action==='saveExcel')result=await saveWorkbook(body);else if(!body.action&&['copy','open'].includes(body.mode))result=await store.changeDirectory(body.directory,body.mode,body.revision);else throw fail('无法识别此操作，请更新插件并重启 DeepSeek Harness。');}
+  else if(req.method==='POST'){const body=await bodyOf(req);if(body.action==='openExcel')result=await openWorkbook(body.path);else if(body.action==='saveExcel')throw fail('采购表为只读模式，不支持保存或修改原 Excel。',405);else if(!body.action&&['copy','open'].includes(body.mode))result=await store.changeDirectory(body.directory,body.mode,body.revision);else throw fail('无法识别此操作，请更新插件并重启 DeepSeek Harness。');}
   else throw fail('不支持此操作。',405);
   res.writeHead(200).end(JSON.stringify(result));
  }catch(e){res.writeHead(e.status||500).end(JSON.stringify({error:e.code?`文件操作失败（${e.code}）：${e.message}`:e.message}));}
