@@ -24,7 +24,7 @@ export function quoteFor(row, data, date=today()) {
  if(valid.length===1) return {quote:valid[0],reason:'可回填'};
  return {reason:valid.length>1?'多个有效报价，请先整理价格表':candidates.length?'报价过期、税务口径/币种/起订量不符或计价条件不完整':'无匹配价格'};
 }
-export function reminders(row,data,stage) {return data.rules.filter(r=>(!r.stage||r.stage==='全部'||r.stage===stage)&&(!r.brand||canonical(r.brand,data.suppliers)===canonical(row.brand,data.suppliers))&&(!r.keyword||normalize(`${row.name} ${row.model} ${row.note}`).includes(normalize(r.keyword)))&&(!r.noSupplier||!suppliersFor(row,data.suppliers).length));}
+export function reminders(row,data) {return data.rules.filter(r=>(!r.brand||canonical(r.brand,data.suppliers)===canonical(row.brand,data.suppliers))&&(!r.keyword||normalize(`${row.name} ${row.model} ${row.note}`).includes(normalize(r.keyword)))&&(!r.noSupplier||!suppliersFor(row,data.suppliers).length));}
 export function inquiry(rows) {
  const {province}=destinationFor(rows);
  const items=rows.map(r=>[
@@ -45,7 +45,7 @@ export function validateData(d) {
  for(const s of d.suppliers){if(!String(s.brand||'').trim())throw Error('供货商资料必须填写品牌');if(s.url&&!safeUrl(s.url))throw Error('供货商店铺网址必须是有效的 http 或 https 链接');}
  for(const p of d.prices) if(!p.brand||!p.model||!p.unit||p.price===''||!Number.isFinite(Number(p.price))||Number(p.price)<0) throw Error('价格必须填写品牌、型号、单位和非负单价');
  for(const c of d.channels) if(!c.brand||!safeUrl(c.url)||!c.source||!safeUrl(c.source)||!validDate(c.checkedAt)) throw Error('渠道必须填写品牌、有效网址、核实来源网址和核实日期');
- for(const r of d.rules) if(!r.message||!['全部','导入','询价','回填','导出'].includes(r.stage||'全部')) throw Error('提醒必须填写内容和有效场景');
+ for(const r of d.rules) if(!r.message) throw Error('提醒必须填写内容');
  return d;
 }
 
@@ -54,4 +54,4 @@ export function channelTargets(rows,suppliers){const targets=new Map();for(const
 export function brandSearchText(brand,suppliers){const index=brandIndex(suppliers);return `${brand||''} ${index.text.get(index.canonicalName(brand))||''}`;}
 export function matchesPurchase(row,query,suppliers){const q=normalize(query);return !q||normalize(`${brandSearchText(row.brand,suppliers)} ${row.name||''} ${row.model||''}`).includes(q);}
 export function matchesReference(record,query,suppliers){const q=normalize(query);return !q||normalize(`${Object.values(record).join(' ')} ${brandSearchText(record.brand,suppliers)}`).includes(q);}
-export function rowReminders(row,data){return data.rules.filter(rule=>rule.brand&&reminders(row,{...data,rules:[rule]},rule.stage||'全部').length);}
+export function rowReminders(row,data){return data.rules.filter(rule=>rule.brand&&reminders(row,{...data,rules:[rule]}).length);}

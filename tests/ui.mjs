@@ -27,7 +27,7 @@ assert.equal(await page.getByRole('button',{name:'询价记录',exact:true}).cou
 await page.getByText('只读文件：'+process.cwd()+'/test-results/需求.xlsx',{exact:true}).waitFor();
 assert.equal(await page.getByLabel('收货省份',{exact:true}).count(),0);
 await page.getByRole('button',{name:/^供货商/}).click();const template=page.waitForEvent('download');await page.getByRole('button',{name:'下载 Excel 模板'}).click();await (await template).saveAs('test-results/供货商模板.xlsx');
-await page.getByRole('button',{name:/^注意事项/}).click();await page.getByRole('button',{name:'新增注意事项',exact:true}).click();await page.getByLabel('提醒内容',{exact:true}).fill('新增验收提醒');await page.getByLabel('场景：全部、导入、询价、回填、导出',{exact:true}).fill('全部');await page.getByRole('button',{name:'添加资料'}).click();await page.getByText('新增验收提醒',{exact:true}).waitFor();
+await page.getByRole('button',{name:/^注意事项/}).click();await page.getByRole('button',{name:'新增注意事项',exact:true}).click();await page.getByLabel('提醒内容',{exact:true}).fill('新增验收提醒');await page.getByRole('button',{name:'添加资料'}).click();await page.getByText('新增验收提醒',{exact:true}).waitFor();
 await page.getByRole('button',{name:'采购明细',exact:true}).click();
 await page.setViewportSize({width:390,height:844});await page.screenshot({path:'test-results/移动布局.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 assert.deepEqual(errors,[]);console.log('UI PASS: XLSX 导入、匹配、只读单价、纯文本剪贴板、提醒、渠道、导出、收货省份与税运要求、重载持久化、窄屏布局');
