@@ -47375,7 +47375,7 @@ function suppliersFor(row, suppliers) {
   return b ? suppliers.filter((s) => normalize(s.brand) === b && [s.name, s.contact, s.wechat, s.phone, s.url].some((v) => String(v || "").trim())) : [];
 }
 function reminders(row, data) {
-  return data.rules.filter((r) => (!r.brand || canonical(r.brand, data.suppliers) === canonical(row.brand, data.suppliers)) && (!r.keyword || normalize(`${row.name} ${row.model} ${row.note}`).includes(normalize(r.keyword))) && (!r.noSupplier || !suppliersFor(row, data.suppliers).length));
+  return data.rules.filter((r) => (!r.brand || canonical(r.brand, data.suppliers) === canonical(row.brand, data.suppliers)) && (!normalize(r.keyword) || normalize(row.name).includes(normalize(r.keyword))) && (!r.noSupplier || !suppliersFor(row, data.suppliers).length));
 }
 function inquiry(rows) {
   const { province } = destinationFor(rows);
@@ -47424,7 +47424,7 @@ function matchesReference(record, query, suppliers) {
   return !q || normalize(`${Object.values(record).join(" ")} ${brandSearchText(record.brand, suppliers)}`).includes(q);
 }
 function rowReminders(row, data) {
-  return data.rules.filter((rule) => rule.brand && reminders(row, { ...data, rules: [rule] }).length);
+  return data.rules.filter((rule) => (rule.brand || normalize(rule.keyword)) && reminders(row, { ...data, rules: [rule] }).length);
 }
 
 // src/excel.mjs
@@ -73913,7 +73913,7 @@ async function importCatalog(buffer, schema) {
   if (!s) throw Error("\u6587\u4EF6\u6CA1\u6709\u5DE5\u4F5C\u8868");
   const mapping = {};
   s.getRow(1).eachCell((c, n) => {
-    for (const [k, label] of Object.entries(schema)) if ([k, label].includes(cellText(c).trim())) mapping[k] = n;
+    for (const [k, label] of Object.entries(schema)) if ([k, label, ...k === "keyword" ? ["\u54C1\u540D / \u578B\u53F7 / \u5907\u6CE8\u5173\u952E\u8BCD"] : []].includes(cellText(c).trim())) mapping[k] = n;
   });
   if (!Object.keys(mapping).length) throw Error("\u672A\u8BC6\u522B\u8868\u5934\uFF0C\u8BF7\u4E0B\u8F7D Excel \u6A21\u677F\u540E\u586B\u5199");
   const records = [];
@@ -74170,7 +74170,7 @@ function download(body, name, type = "application/json") {
   setTimeout(() => URL.revokeObjectURL(u), 1e3);
 }
 var labels = { suppliers: "\u4F9B\u8D27\u5546", rules: "\u6CE8\u610F\u4E8B\u9879" };
-var schemas = { suppliers: { brand: "\u54C1\u724C", aliases: "\u54C1\u724C\u522B\u540D\uFF08\u7528 | \u5206\u9694\uFF09", name: "\u4F9B\u8D27\u5546\u540D\u79F0", contact: "\u8054\u7CFB\u4EBA", wechat: "\u5FAE\u4FE1", phone: "\u7535\u8BDD", url: "\u5E97\u94FA\u7F51\u5740", note: "\u5907\u6CE8" }, rules: { brand: "\u54C1\u724C\uFF08\u7A7A\u767D\u4E3A\u5168\u90E8\uFF09", keyword: "\u54C1\u540D / \u578B\u53F7 / \u5907\u6CE8\u5173\u952E\u8BCD", message: "\u63D0\u9192\u5185\u5BB9" } };
+var schemas = { suppliers: { brand: "\u54C1\u724C", aliases: "\u54C1\u724C\u522B\u540D\uFF08\u7528 | \u5206\u9694\uFF09", name: "\u4F9B\u8D27\u5546\u540D\u79F0", contact: "\u8054\u7CFB\u4EBA", wechat: "\u5FAE\u4FE1", phone: "\u7535\u8BDD", url: "\u5E97\u94FA\u7F51\u5740", note: "\u5907\u6CE8" }, rules: { brand: "\u54C1\u724C\uFF08\u7A7A\u767D\u4E3A\u5168\u90E8\uFF09", keyword: "\u54C1\u540D", message: "\u63D0\u9192\u5185\u5BB9" } };
 function App() {
   const disk = useDiskState();
   const { data, rows, setData, setRows } = disk;
@@ -74196,7 +74196,7 @@ function App() {
   const shown = (0, import_react2.useMemo)(() => rows.filter((r) => matchesPurchase(r, filter, data.suppliers)), [rows, filter, data.suppliers]);
   const destination = destinationFor(chosen);
   const text = manual || inquiry(chosen);
-  const alerts = (0, import_react2.useMemo)(() => data.rules.filter((rule) => !rule.brand && rows.some((r) => reminders(r, { ...data, rules: [rule] }).length)).map((rule) => rule.message), [rows, data]);
+  const alerts = (0, import_react2.useMemo)(() => data.rules.filter((rule) => !rule.brand && !String(rule.keyword || "").trim() && rows.some((r) => reminders(r, { ...data, rules: [rule] }).length)).map((rule) => rule.message), [rows, data]);
   const catalogResults = (0, import_react2.useMemo)(() => (data[tab] || []).map((r, i) => ({ r, i })).filter(({ r }) => matchesReference(r, catalogQuery, data.suppliers)), [data[tab], catalogQuery, data.suppliers]);
   const act = async (fn) => {
     setBusy(true);
@@ -74310,7 +74310,7 @@ function App() {
   }) }, "\u786E\u8BA4\u5BFC\u5165"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setBook(null) }, "\u53D6\u6D88")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-summary" }, /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.length), " \u884C\u9700\u6C42"), /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.filter((r) => suppliersFor(r, data.suppliers).length).length), " \u884C\u6709\u5408\u4F5C\u4F9B\u8D27\u5546"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u9009 ", chosen.length, " \u884C")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-grid" }, /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-sheet" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-table-scroll" }, /* @__PURE__ */ import_react2.default.createElement("table", null, /* @__PURE__ */ import_react2.default.createElement("thead", null, /* @__PURE__ */ import_react2.default.createElement("tr", null, /* @__PURE__ */ import_react2.default.createElement("th", null, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u9009\u62E9\u5F53\u524D\u7B5B\u9009\u7684\u5168\u90E8\u884C", type: "checkbox", checked: !!shown.length && shown.every((r) => selected.includes(r.id)), onChange: (e) => {
     setSelected(e.target.checked ? [.../* @__PURE__ */ new Set([...selected, ...shown.map((r) => r.id)])] : selected.filter((id) => !shown.some((r) => r.id === id)));
     setManual("");
-  } })), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u54C1\u724C / \u54C1\u540D"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u578B\u53F7"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u6570\u91CF"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u4F9B\u8D27\u5546 / \u8054\u7CFB\u65B9\u5F0F"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u5355\u4EF7"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u54C1\u724C\u6CE8\u610F\u4E8B\u9879"))), /* @__PURE__ */ import_react2.default.createElement("tbody", null, shown.map((r) => {
+  } })), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u54C1\u724C / \u54C1\u540D"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u578B\u53F7"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u6570\u91CF"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u4F9B\u8D27\u5546 / \u8054\u7CFB\u65B9\u5F0F"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u5355\u4EF7"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u6CE8\u610F\u4E8B\u9879"))), /* @__PURE__ */ import_react2.default.createElement("tbody", null, shown.map((r) => {
     const ss = suppliersFor(r, data.suppliers), notes = rowReminders(r, data);
     return /* @__PURE__ */ import_react2.default.createElement("tr", { key: r.id, className: ss.length ? "partner" : "" }, /* @__PURE__ */ import_react2.default.createElement("td", null, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": `\u9009\u62E9 ${r.model}`, type: "checkbox", checked: selected.includes(r.id), onChange: (e) => {
       setSelected(e.target.checked ? [...selected, r.id] : selected.filter((id) => id !== r.id));

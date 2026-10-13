@@ -24,7 +24,7 @@ export function quoteFor(row, data, date=today()) {
  if(valid.length===1) return {quote:valid[0],reason:'可回填'};
  return {reason:valid.length>1?'多个有效报价，请先整理价格表':candidates.length?'报价过期、税务口径/币种/起订量不符或计价条件不完整':'无匹配价格'};
 }
-export function reminders(row,data) {return data.rules.filter(r=>(!r.brand||canonical(r.brand,data.suppliers)===canonical(row.brand,data.suppliers))&&(!r.keyword||normalize(`${row.name} ${row.model} ${row.note}`).includes(normalize(r.keyword)))&&(!r.noSupplier||!suppliersFor(row,data.suppliers).length));}
+export function reminders(row,data) {return data.rules.filter(r=>(!r.brand||canonical(r.brand,data.suppliers)===canonical(row.brand,data.suppliers))&&(!normalize(r.keyword)||normalize(row.name).includes(normalize(r.keyword)))&&(!r.noSupplier||!suppliersFor(row,data.suppliers).length));}
 export function inquiry(rows) {
  const {province}=destinationFor(rows);
  const items=rows.map(r=>[
@@ -54,4 +54,4 @@ export function channelTargets(rows,suppliers){const targets=new Map();for(const
 export function brandSearchText(brand,suppliers){const index=brandIndex(suppliers);return `${brand||''} ${index.text.get(index.canonicalName(brand))||''}`;}
 export function matchesPurchase(row,query,suppliers){const q=normalize(query);return !q||normalize(`${brandSearchText(row.brand,suppliers)} ${row.name||''} ${row.model||''}`).includes(q);}
 export function matchesReference(record,query,suppliers){const q=normalize(query);return !q||normalize(`${Object.values(record).join(' ')} ${brandSearchText(record.brand,suppliers)}`).includes(q);}
-export function rowReminders(row,data){return data.rules.filter(rule=>rule.brand&&reminders(row,{...data,rules:[rule]}).length);}
+export function rowReminders(row,data){return data.rules.filter(rule=>(rule.brand||normalize(rule.keyword))&&reminders(row,{...data,rules:[rule]}).length);}
