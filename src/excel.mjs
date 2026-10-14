@@ -41,7 +41,7 @@ const aliases={
  brand:['品牌','厂家品牌','制造商品牌'],name:['品名','产品名称','物料名称','物资名称','商品名称'],
  model:['型号','规格型号','规格/型号','产品型号','规格'],quantity:['数量','需求数量','采购数量','需求量'],
  unit:['单位','计量单位'],note:['备注','说明'],price:['单价','采购价','含税单价','含税单价(元)','含税单价（元）','未税单价','未税单价(元)','不含税单价'],
- materialCode:['物料编码','物料代码','物资编码'],company:['需求公司','需求单位','采购公司']
+ company:['需求公司','需求单位','采购公司']
 };
 const headerKey=v=>String(v??'').normalize('NFKC').replace(/[\s*＊]/g,'').toLowerCase();
 export function mapColumns(sheet,headerRow){
