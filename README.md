@@ -1,3 +1,5 @@
+> 0.3.20：通用注意事项移至操作栏下、采购表上方，宽屏横向排列，默认显示前三条，可展开全部或收起；新一轮导入时恢复收起状态。
+
 > 0.3.19：移除采购明细中“未指定具体品牌”的附加提示，保留原始品牌名称、品名和备注。
 
 > 0.3.18：删除物料编码的专用字段定义、表头映射及界面排除分支。原表中的编码列按普通未映射列处理，不再生成额外的编码字段或空导出列。
@@ -40,7 +42,7 @@
 2. 在这个终端执行：
 
    ```sh
-   dsh plugin add '/Users/double/buyer/plugins/dsh-procurement-workbench-0.3.19.tgz'
+   dsh plugin add '/Users/double/buyer/plugins/dsh-procurement-workbench-0.3.20.tgz'
    ```
 
 3. 重启 Desktop，在侧边栏打开「采购工作台」。
