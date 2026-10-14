@@ -1,8 +1,8 @@
 {
-  "name": "dsh-procurement-workbench",
-  "version": "0.3.21",
+  "name": "dsh-procuremate",
+  "version": "0.3.24",
   "type": "module",
-  "description": "个人采购工作台：Excel 询价、合作供货商、价格回填与场景提醒",
+  "description": "采购助手 ProcureMate：Excel 需求导入、询价文本、供货商管理与采购提醒",
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js"
@@ -13,7 +13,11 @@
     "README.md",
     "templates",
     "VALIDATION.md",
-    "COMPATIBILITY.md"
+    "COMPATIBILITY.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "docs"
   ],
   "dsh": {
     "bundle": {
@@ -44,5 +48,6 @@
     "exceljs": {
       "uuid": "11.1.1"
     }
-  }
+  },
+  "license": "MIT"
 }

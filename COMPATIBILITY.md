@@ -1,7 +1,15 @@
-# 当前兼容范围（0.3.4）
+# 兼容范围
 
-采购表只读，支持 .xls 和 .xlsx，单价以文本显示，空值显示“—”。已移除原文件写回及 WPS/Excel 自动化写入，不需要安装 Microsoft Excel 来读取采购表。
+插件基于 DeepSeek Harness Desktop `0.2.0-rc.2` 的公开接口开发。当前 0.3.24 包尚未进行 Desktop 实机加载验收，不承诺兼容未经验证的其他版本。
 
-Windows 使用原生文件选择框；macOS 使用系统文件选择器。文件解析和只读界面已在 macOS 测试，Windows 文件选择分支经过代码测试，尚未实机验收。
+| 范围 | 当前状态 |
+| --- | --- |
+| macOS 浏览器预览 | 已验证导入、资料保存、公司省份、询价标记和通用提醒界面 |
+| Windows | 文件选择分支经过代码测试，尚未实机验收 |
+| Excel | 支持二进制 `.xls` 和 `.xlsx`，只读原文件；无需安装 Microsoft Excel 进行解析 |
+| Web Host | 使用公开 `webServer` 服务注册 `/procurement-workbench/api` |
+| Web Client | 使用 `main` keyed slot 与 `sidebar.panellist` list slot |
 
-供货商、价格表、渠道和注意事项仍保存于可配置目录中的 procurement-workbench.json。不产生自动备份。
+当前没有原 Excel 写回、价格表或渠道管理界面。保留旧资料字段用于兼容，不代表相关功能仍然对用户开放。
+
+供货商、注意事项、公司省份和询价标记保存在可配置目录的 `procurement-workbench.json` 中。不产生自动备份。
