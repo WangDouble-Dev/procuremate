@@ -47299,11 +47299,18 @@ var regions = {
   "\u6FB3\u95E8\u7279\u522B\u884C\u653F\u533A": "\u6FB3\u95E8",
   "\u53F0\u6E7E\u7701": "\u53F0\u6E7E|\u53F0\u5317"
 };
+var provinceOptions = Object.keys(regions);
+var normalizeCompany = (value) => String(value || "").normalize("NFKC").replace(/\s/g, "");
 function demandCompany(row) {
   return String(row.company || row.sourceExtra?.find((e) => ["\u9700\u6C42\u516C\u53F8", "\u9700\u6C42\u5355\u4F4D", "\u91C7\u8D2D\u516C\u53F8"].includes(String(e.header).trim()))?.value || "").trim();
 }
-function companyProvince(value) {
-  const name = String(value || "").normalize("NFKC").replace(/\s/g, "");
+function companyProvince(value, companies = []) {
+  const name = normalizeCompany(value);
+  const configured = companies.filter((c) => normalizeCompany(c.company) === name);
+  if (configured.length) {
+    const values = new Set(configured.map((c) => c.province));
+    return values.size === 1 && provinceOptions.includes(configured[0].province) ? configured[0].province : "";
+  }
   if (knownCompanies[name]) return knownCompanies[name];
   const hits = /* @__PURE__ */ new Set();
   for (const [province, places] of Object.entries(regions)) for (const place of places.split("|")) {
@@ -47311,14 +47318,14 @@ function companyProvince(value) {
   }
   return hits.size === 1 ? [...hits][0] : "";
 }
-function destinationFor(rows) {
+function destinationFor(rows, companies = []) {
   if (!rows.length) return { province: "", error: "" };
   const provinces = /* @__PURE__ */ new Set();
   for (const row of rows) {
     const company = demandCompany(row);
     if (!company) return { province: "", error: "\u6240\u9009\u660E\u7EC6\u7F3A\u5C11\u9700\u6C42\u516C\u53F8\uFF0C\u8BF7\u68C0\u67E5 Excel \u7684\u9700\u6C42\u516C\u53F8\u5217\u3002" };
-    const province = companyProvince(company);
-    if (!province) return { province: "", error: `\u6682\u65F6\u65E0\u6CD5\u786E\u5B9A\u300C${company}\u300D\u6240\u5728\u7701\u4EFD\uFF0C\u8BF7\u5148\u6838\u5B9E\u516C\u53F8\u6240\u5728\u5730\u3002` };
+    const province = companyProvince(company, companies);
+    if (!province) return { province: "", error: `\u6682\u65F6\u65E0\u6CD5\u786E\u5B9A\u300C${company}\u300D\u6240\u5728\u7701\u4EFD\uFF0C\u8BF7\u5728\u201C\u516C\u53F8\u7701\u4EFD\u201D\u4E2D\u914D\u7F6E\u53D1\u5F80\u7701\u4EFD\u3002` };
     provinces.add(province);
   }
   if (provinces.size > 1) return { province: "", error: "\u6240\u9009\u9700\u6C42\u516C\u53F8\u6D89\u53CA\u591A\u4E2A\u7701\u4EFD\uFF0C\u8BF7\u6309\u7701\u4EFD\u5206\u6279\u9009\u62E9\u8BE2\u4EF7\u3002" };
@@ -47377,8 +47384,8 @@ function suppliersFor(row, suppliers) {
 function reminders(row, data) {
   return data.rules.filter((r) => (!r.brand || canonical(r.brand, data.suppliers) === canonical(row.brand, data.suppliers)) && (!normalize(r.keyword) || normalize(row.name).includes(normalize(r.keyword))) && (!r.noSupplier || !suppliersFor(row, data.suppliers).length));
 }
-function inquiry(rows) {
-  const { province } = destinationFor(rows);
+function inquiry(rows, companies = []) {
+  const { province } = destinationFor(rows, companies);
   const items = rows.map((r) => [
     `\u3010\u54C1\u724C\u3011${clean(r.brand) || "\u5F85\u786E\u8BA4"}`,
     `\u3010\u54C1\u540D\u3011${clean(r.name) || "\u2014"}`,
@@ -47397,11 +47404,23 @@ function safeUrl(value) {
     return null;
   }
 }
-var emptyData = () => ({ suppliers: [], prices: [], channels: [], rules: [] });
+var emptyData = () => ({ suppliers: [], prices: [], channels: [], rules: [], companies: [] });
 function validateData(d) {
   if (!d || typeof d !== "object") throw Error("\u8D44\u6599\u5FC5\u987B\u662F\u5BF9\u8C61");
   for (const key of ["suppliers", "prices", "channels", "rules"]) if (!Array.isArray(d[key]) || d[key].some((x) => !x || typeof x !== "object" || Array.isArray(x))) throw Error(`${key} \u5FC5\u987B\u662F\u8BB0\u5F55\u5217\u8868`);
   for (const key of ["suppliers", "prices", "channels", "rules"]) for (const record of d[key]) for (const [field, value] of Object.entries(record)) if (value !== null && !["string", "number", "boolean"].includes(typeof value)) throw Error(`${key}.${field} \u5FC5\u987B\u662F\u6587\u672C\u3001\u6570\u5B57\u6216\u5E03\u5C14\u503C`);
+  if (d.companies !== void 0) {
+    if (!Array.isArray(d.companies)) throw Error("\u516C\u53F8\u7701\u4EFD\u5FC5\u987B\u662F\u8BB0\u5F55\u5217\u8868");
+    const names = /* @__PURE__ */ new Set();
+    for (const c of d.companies) {
+      if (!c || typeof c.company !== "string" || !normalizeCompany(c.company)) throw Error("\u516C\u53F8\u7701\u4EFD\u5FC5\u987B\u586B\u5199\u9700\u6C42\u516C\u53F8");
+      if (!provinceOptions.includes(c.province)) throw Error("\u8BF7\u9009\u62E9\u6709\u6548\u7684\u53D1\u5F80\u7701\u4EFD");
+      const name = normalizeCompany(c.company);
+      if (names.has(name)) throw Error("\u540C\u4E00\u9700\u6C42\u516C\u53F8\u53EA\u80FD\u914D\u7F6E\u4E00\u6761\u7701\u4EFD\u8BB0\u5F55\uFF0C\u8BF7\u7F16\u8F91\u5DF2\u6709\u8BB0\u5F55");
+      names.add(name);
+      for (const value of Object.values(c)) if (value !== null && !["string", "number", "boolean"].includes(typeof value)) throw Error("\u516C\u53F8\u7701\u4EFD\u5B57\u6BB5\u5FC5\u987B\u662F\u6587\u672C\u3001\u6570\u5B57\u6216\u5E03\u5C14\u503C");
+    }
+  }
   for (const s of d.suppliers) {
     if (!String(s.brand || "").trim()) throw Error("\u4F9B\u8D27\u5546\u8D44\u6599\u5FC5\u987B\u586B\u5199\u54C1\u724C");
     if (s.url && !safeUrl(s.url)) throw Error("\u4F9B\u8D27\u5546\u5E97\u94FA\u7F51\u5740\u5FC5\u987B\u662F\u6709\u6548\u7684 http \u6216 https \u94FE\u63A5");
@@ -74169,8 +74188,8 @@ function download(body, name, type = "application/json") {
   a.click();
   setTimeout(() => URL.revokeObjectURL(u), 1e3);
 }
-var labels = { suppliers: "\u4F9B\u8D27\u5546", rules: "\u6CE8\u610F\u4E8B\u9879" };
-var schemas = { suppliers: { brand: "\u54C1\u724C", aliases: "\u54C1\u724C\u522B\u540D\uFF08\u7528 | \u5206\u9694\uFF09", name: "\u4F9B\u8D27\u5546\u540D\u79F0", contact: "\u8054\u7CFB\u4EBA", wechat: "\u5FAE\u4FE1", phone: "\u7535\u8BDD", url: "\u5E97\u94FA\u7F51\u5740", note: "\u5907\u6CE8" }, rules: { brand: "\u54C1\u724C\uFF08\u7A7A\u767D\u4E3A\u5168\u90E8\uFF09", keyword: "\u54C1\u540D", message: "\u63D0\u9192\u5185\u5BB9" } };
+var labels = { suppliers: "\u4F9B\u8D27\u5546", rules: "\u6CE8\u610F\u4E8B\u9879", companies: "\u516C\u53F8\u7701\u4EFD" };
+var schemas = { companies: { company: "\u9700\u6C42\u516C\u53F8", province: "\u53D1\u5F80\u7701\u4EFD" }, suppliers: { brand: "\u54C1\u724C", aliases: "\u54C1\u724C\u522B\u540D\uFF08\u7528 | \u5206\u9694\uFF09", name: "\u4F9B\u8D27\u5546\u540D\u79F0", contact: "\u8054\u7CFB\u4EBA", wechat: "\u5FAE\u4FE1", phone: "\u7535\u8BDD", url: "\u5E97\u94FA\u7F51\u5740", note: "\u5907\u6CE8" }, rules: { brand: "\u54C1\u724C\uFF08\u7A7A\u767D\u4E3A\u5168\u90E8\uFF09", keyword: "\u54C1\u540D", message: "\u63D0\u9192\u5185\u5BB9" } };
 function App() {
   const disk = useDiskState();
   const { data, rows, setData, setRows } = disk;
@@ -74194,8 +74213,8 @@ function App() {
   const [editorOpen, setEditorOpen] = (0, import_react2.useState)(false);
   const chosen = rows.filter((r) => selected.includes(r.id));
   const shown = (0, import_react2.useMemo)(() => rows.filter((r) => matchesPurchase(r, filter, data.suppliers)), [rows, filter, data.suppliers]);
-  const destination = destinationFor(chosen);
-  const text = manual || inquiry(chosen);
+  const destination = destinationFor(chosen, data.companies);
+  const text = manual || inquiry(chosen, data.companies);
   const alerts = (0, import_react2.useMemo)(() => data.rules.filter((rule) => !rule.brand && !String(rule.keyword || "").trim() && rows.some((r) => reminders(r, { ...data, rules: [rule] }).length)).map((rule) => rule.message), [rows, data]);
   const catalogResults = (0, import_react2.useMemo)(() => (data[tab] || []).map((r, i) => ({ r, i })).filter(({ r }) => matchesReference(r, catalogQuery, data.suppliers)), [data[tab], catalogQuery, data.suppliers]);
   const act = async (fn) => {
@@ -74212,6 +74231,7 @@ function App() {
     const next = { ...data, [key]: list };
     validateData(next);
     setData(next);
+    if (key === "companies") setManual("");
   }
   function resetSelection() {
     setSelected([]);
@@ -74235,12 +74255,11 @@ function App() {
   }
   async function copy() {
     if (!chosen.length) throw Error("\u8BF7\u5148\u52FE\u9009\u8981\u8BE2\u4EF7\u7684\u884C");
-    if (destination.error) throw Error(destination.error);
     await navigator.clipboard.writeText(text);
     setMessage("\u5DF2\u590D\u5236\u7EAF\u6587\u672C\uFF0C\u53EF\u7C98\u8D34\u53D1\u9001\u3002");
   }
   function recordForm() {
-    const list = [...data[tab]];
+    const list = [...data[tab] || []];
     const record = { ...form, id: edit === null ? crypto.randomUUID() : list[edit].id || crypto.randomUUID() };
     if (edit === null) list.push(record);
     else list[edit] = record;
@@ -74266,7 +74285,7 @@ function App() {
     if (confirm("\u5C06\u7528\u5F53\u524D\u9875\u9762\u7684\u5168\u90E8\u8D44\u6599\u8986\u76D6\u6587\u4EF6\u4E2D\u7684\u6700\u65B0\u5185\u5BB9\uFF0C\u5176\u4ED6\u7A97\u53E3\u7684\u4FEE\u6539\u53EF\u80FD\u4E22\u5931\u3002\u786E\u8BA4\u4FDD\u5B58\uFF1F")) act(() => disk.saveCurrent(true));
   } }, "\u7528\u5F53\u524D\u5185\u5BB9\u4FDD\u5B58")), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
     if (!disk.ready || confirm("\u91CD\u65B0\u8F7D\u5165\u4F1A\u653E\u5F03\u5F53\u524D\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u901A\u5E38\u53EF\u76F4\u63A5\u91CD\u8BD5\u4FDD\u5B58\uFF0C\u65E0\u9700\u91CD\u65B0\u8F7D\u5165\u3002\u786E\u5B9A\u653E\u5F03\u4FEE\u6539\uFF1F")) disk.reload();
-  } }, "\u91CD\u65B0\u8F7D\u5165")), settings && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4F9B\u8D27\u5546\u4E0E\u6CE8\u610F\u4E8B\u9879\u7EDF\u4E00\u4FDD\u5B58\u3002\u91C7\u8D2D\u8868\u53EA\u8BFB\u663E\u793A\uFF1B\u4F9B\u8D27\u5546\u7B49\u53C2\u8003\u8D44\u6599\u81EA\u52A8\u5199\u5165\u5F53\u524D\u6587\u4EF6\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u76EE\u5F55\u8DEF\u5F84", /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55", value: directory, onChange: (e) => setDirectory(e.target.value), placeholder: "/Users/double/buyer/data/" })), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, disk.info?.file && `\u5F53\u524D\u6587\u4EF6\uFF1A${disk.info.file}`), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
+  } }, "\u91CD\u65B0\u8F7D\u5165")), settings && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u4E0E\u516C\u53F8\u7701\u4EFD\u7EDF\u4E00\u4FDD\u5B58\u3002\u91C7\u8D2D\u8868\u53EA\u8BFB\u663E\u793A\uFF1B\u4F9B\u8D27\u5546\u7B49\u53C2\u8003\u8D44\u6599\u81EA\u52A8\u5199\u5165\u5F53\u524D\u6587\u4EF6\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u76EE\u5F55\u8DEF\u5F84", /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55", value: directory, onChange: (e) => setDirectory(e.target.value), placeholder: "/Users/double/buyer/data/" })), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, disk.info?.file && `\u5F53\u524D\u6587\u4EF6\uFF1A${disk.info.file}`), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
     await disk.changeDirectory(directory, "copy");
     resetSelection();
     setMessage("\u5DF2\u590D\u5236\u8D44\u6599\u5E76\u5207\u6362\u76EE\u5F55\u3002\u539F\u76EE\u5F55\u6587\u4EF6\u4FDD\u7559\uFF0C\u540E\u7EED\u53EA\u66F4\u65B0\u65B0\u76EE\u5F55\u3002");
@@ -74316,7 +74335,14 @@ function App() {
       setSelected(e.target.checked ? [...selected, r.id] : selected.filter((id) => id !== r.id));
       setManual("");
     } })), /* @__PURE__ */ import_react2.default.createElement("td", null, /* @__PURE__ */ import_react2.default.createElement("b", null, r.brand || "\u672A\u586B\u5199\u54C1\u724C"), isGenericBrand(r.brand) && /* @__PURE__ */ import_react2.default.createElement("small", null, "\u672A\u6307\u5B9A\u5177\u4F53\u54C1\u724C"), /* @__PURE__ */ import_react2.default.createElement("small", null, r.name), r.materialCode && /* @__PURE__ */ import_react2.default.createElement("small", null, "\u7269\u6599\u7F16\u7801 ", r.materialCode), r.note && /* @__PURE__ */ import_react2.default.createElement("small", null, r.note)), /* @__PURE__ */ import_react2.default.createElement("td", { className: "mono" }, r.model || "\u672A\u586B\u5199\u578B\u53F7"), /* @__PURE__ */ import_react2.default.createElement("td", null, r.quantity, " ", r.unit), /* @__PURE__ */ import_react2.default.createElement("td", null, ss.length ? ss.map((s, i) => /* @__PURE__ */ import_react2.default.createElement("div", { key: i }, /* @__PURE__ */ import_react2.default.createElement("b", null, s.name || s.contact || "\u5DF2\u8BB0\u5F55\u8054\u7CFB\u65B9\u5F0F"), safeUrl(s.url) && /* @__PURE__ */ import_react2.default.createElement("a", { href: safeUrl(s.url), target: "_blank", rel: "noreferrer" }, "\u6253\u5F00\u5E97\u94FA \u2197"), s.note && /* @__PURE__ */ import_react2.default.createElement("small", null, s.note), /* @__PURE__ */ import_react2.default.createElement("small", null, [s.contact, s.wechat && `\u5FAE\u4FE1 ${s.wechat}`, s.phone].filter(Boolean).join(" \xB7 ") || "\u5C1A\u672A\u586B\u5199\u8054\u7CFB\u65B9\u5F0F"))) : /* @__PURE__ */ import_react2.default.createElement("span", { className: "muted" }, "\u5F85\u5BFB\u627E\u6E20\u9053")), /* @__PURE__ */ import_react2.default.createElement("td", { className: "pw-row-notes" }, notes.length ? notes.map((note, i) => /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-alert", key: i }, note.message)) : /* @__PURE__ */ import_react2.default.createElement("span", { className: "muted" }, "\u2014")));
-  })))), !rows.length && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-empty" }, /* @__PURE__ */ import_react2.default.createElement("span", null, "\u25A4"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u5148\u6253\u5F00\u4E00\u5F20\u91C7\u8D2D\u9700\u6C42\u8868"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u652F\u6301 .xls / .xlsx\uFF1B\u53EF\u9009\u62E9\u5DE5\u4F5C\u8868\u548C\u8868\u5934\u884C\u3002", /* @__PURE__ */ import_react2.default.createElement("br", null), "\u5408\u4F5C\u4F9B\u8D27\u5546\u6807\u7EFF\uFF0C\u62A5\u4EF7\u6761\u4EF6\u9010\u884C\u6838\u5BF9\u3002"))), /* @__PURE__ */ import_react2.default.createElement("aside", null, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-ticket" }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-label" }, "\u8BE2\u4EF7\u5355 \xB7 \u7EAF\u6587\u672C"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u9009\u597D\u660E\u7EC6\uFF0C\u76F4\u63A5\u590D\u5236"), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, destination.error || (destination.province ? `\u53D1\u5F80\uFF1A${destination.province}\uFF08\u6839\u636E\u9700\u6C42\u516C\u53F8\u81EA\u52A8\u8BC6\u522B\uFF09` : "\u9009\u4E2D\u660E\u7EC6\u540E\uFF0C\u6839\u636E\u9700\u6C42\u516C\u53F8\u8BC6\u522B\u53D1\u5F80\u7701\u4EFD\u3002")), /* @__PURE__ */ import_react2.default.createElement("textarea", { "aria-label": "\u8BE2\u4EF7\u6587\u672C", rows: 13, value: chosen.length ? text : "", placeholder: "\u52FE\u9009\u5DE6\u4FA7\u660E\u7EC6\u540E\uFF0C\u8BE2\u4EF7\u6587\u672C\u4F1A\u51FA\u73B0\u5728\u8FD9\u91CC\u3002\u53EA\u5305\u542B\u4EA7\u54C1\u9700\u6C42\uFF0C\u4E0D\u5305\u542B\u91C7\u8D2D\u5E95\u4EF7\u3002", onChange: (e) => setManual(e.target.value) }), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", disabled: !chosen.length || busy, onClick: () => act(copy) }, "\u590D\u5236\u8BE2\u4EF7\u6587\u672C"), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u590D\u5236\u540E\u81EA\u884C\u7C98\u8D34\u81F3\u5FAE\u4FE1\u6216\u7535\u5546\u5BA2\u670D\u3002\u53EF\u7F16\u8F91\u6587\u5B57\uFF1B\u8C03\u6574\u9009\u4E2D\u884C\u540E\u91CD\u65B0\u751F\u6210\u3002")), /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-notes" }, /* @__PURE__ */ import_react2.default.createElement("h3", null, "\u901A\u7528\u6CE8\u610F\u4E8B\u9879"), alerts.length ? [...new Set(alerts)].map((a, i) => /* @__PURE__ */ import_react2.default.createElement("p", { key: i, className: "pw-alert" }, a)) : /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, rows.length ? "\u6CA1\u6709\u5339\u914D\u7684\u901A\u7528\u63D0\u9192\u3002" : "\u5BFC\u5165\u91C7\u8D2D\u660E\u7EC6\u540E\u663E\u793A\u5339\u914D\u63D0\u9192\u3002"))))) : /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-records" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
+  })))), !rows.length && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-empty" }, /* @__PURE__ */ import_react2.default.createElement("span", null, "\u25A4"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u5148\u6253\u5F00\u4E00\u5F20\u91C7\u8D2D\u9700\u6C42\u8868"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u652F\u6301 .xls / .xlsx\uFF1B\u53EF\u9009\u62E9\u5DE5\u4F5C\u8868\u548C\u8868\u5934\u884C\u3002", /* @__PURE__ */ import_react2.default.createElement("br", null), "\u5408\u4F5C\u4F9B\u8D27\u5546\u6807\u7EFF\uFF0C\u62A5\u4EF7\u6761\u4EF6\u9010\u884C\u6838\u5BF9\u3002"))), /* @__PURE__ */ import_react2.default.createElement("aside", null, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-ticket" }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-label" }, "\u8BE2\u4EF7\u5355 \xB7 \u7EAF\u6587\u672C"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u9009\u597D\u660E\u7EC6\uFF0C\u76F4\u63A5\u590D\u5236"), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, destination.error || (destination.province ? `\u53D1\u5F80\uFF1A${destination.province}\uFF08\u6839\u636E\u516C\u53F8\u914D\u7F6E\u6216\u540D\u79F0\u8BC6\u522B\uFF09` : "\u9009\u4E2D\u660E\u7EC6\u540E\uFF0C\u6839\u636E\u9700\u6C42\u516C\u53F8\u8BC6\u522B\u53D1\u5F80\u7701\u4EFD\u3002")), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
+    const company = chosen.map(demandCompany).find((c) => c && !companyProvince(c, data.companies));
+    setTab("companies");
+    setCatalogQuery("");
+    setForm(company ? { company } : {});
+    setEdit(null);
+    setEditorOpen(!!company);
+  } }, "\u914D\u7F6E\u516C\u53F8\u7701\u4EFD"), /* @__PURE__ */ import_react2.default.createElement("textarea", { "aria-label": "\u8BE2\u4EF7\u6587\u672C", rows: 13, value: chosen.length ? text : "", placeholder: "\u52FE\u9009\u5DE6\u4FA7\u660E\u7EC6\u540E\uFF0C\u8BE2\u4EF7\u6587\u672C\u4F1A\u51FA\u73B0\u5728\u8FD9\u91CC\u3002\u53EA\u5305\u542B\u4EA7\u54C1\u9700\u6C42\uFF0C\u4E0D\u5305\u542B\u91C7\u8D2D\u5E95\u4EF7\u3002", onChange: (e) => setManual(e.target.value) }), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", disabled: !chosen.length || busy, onClick: () => act(copy) }, "\u590D\u5236\u8BE2\u4EF7\u6587\u672C"), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u590D\u5236\u540E\u81EA\u884C\u7C98\u8D34\u81F3\u5FAE\u4FE1\u6216\u7535\u5546\u5BA2\u670D\u3002\u53EF\u7F16\u8F91\u6587\u5B57\uFF1B\u8C03\u6574\u9009\u4E2D\u884C\u540E\u91CD\u65B0\u751F\u6210\u3002")), /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-notes" }, /* @__PURE__ */ import_react2.default.createElement("h3", null, "\u901A\u7528\u6CE8\u610F\u4E8B\u9879"), alerts.length ? [...new Set(alerts)].map((a, i) => /* @__PURE__ */ import_react2.default.createElement("p", { key: i, className: "pw-alert" }, a)) : /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, rows.length ? "\u6CA1\u6709\u5339\u914D\u7684\u901A\u7528\u63D0\u9192\u3002" : "\u5BFC\u5165\u91C7\u8D2D\u660E\u7EC6\u540E\u663E\u793A\u5339\u914D\u63D0\u9192\u3002"))))) : /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-records" }, tab === "companies" && /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u586B\u5199\u9700\u6C42\u516C\u53F8\u7684\u5B8C\u6574\u540D\u79F0\u5E76\u9009\u62E9\u53D1\u5F80\u7701\u4EFD\u3002\u914D\u7F6E\u4F18\u5148\u4E8E\u540D\u79F0\u8BC6\u522B\uFF0C\u8BF7\u6309\u5B9E\u9645\u6536\u8D27\u7701\u4EFD\u586B\u5199\uFF1B\u540C\u4E00\u516C\u53F8\u53EA\u80FD\u914D\u7F6E\u4E00\u4E2A\u7701\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
     setForm({});
     setEdit(null);
     setEditorOpen(true);
@@ -74329,10 +74355,10 @@ function App() {
     if (!confirm(`\u7528\u5BFC\u5165\u6587\u4EF6\u66FF\u6362\u5168\u90E8${labels[tab]}\u8D44\u6599\uFF1F`)) return;
     changeData(tab, list);
     setMessage(`\u5DF2\u5BFC\u5165 ${list.length} \u6761${labels[tab]}\u8D44\u6599\u3002${tab === "suppliers" ? "\u4EC5\u586B\u54C1\u724C\u7684\u8BB0\u5F55\u4E0D\u4F1A\u6807\u4E3A\u5DF2\u6709\u4F9B\u8D27\u5546\u3002" : ""}`);
-  }) })), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => download(JSON.stringify(data[tab], null, 2), `${tab}.json`) }, "\u5BFC\u51FA\u8D44\u6599")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-catalog-search" }, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": `\u641C\u7D22${labels[tab]}`, placeholder: tab === "suppliers" ? "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u3001\u8054\u7CFB\u4EBA\u3001\u5FAE\u4FE1\u6216\u7535\u8BDD" : "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u6216\u63D0\u9192\u5185\u5BB9", value: catalogQuery, onChange: (e) => setCatalogQuery(e.target.value) }), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setCatalogQuery("") }, "\u6E05\u7A7A\u641C\u7D22"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u627E\u5230 ", catalogResults.length, " / ", data[tab].length, " \u6761")), editorOpen && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-editor-backdrop" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-editor", role: "dialog", "aria-modal": "true", "aria-label": `${edit === null ? "\u65B0\u589E" : "\u7F16\u8F91"}${labels[tab]}` }, /* @__PURE__ */ import_react2.default.createElement("h2", null, edit === null ? "\u65B0\u589E" : "\u7F16\u8F91", labels[tab]), /* @__PURE__ */ import_react2.default.createElement("form", { onSubmit: (e) => {
+  }) })), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => download(JSON.stringify(data[tab] || [], null, 2), `${tab}.json`) }, "\u5BFC\u51FA\u8D44\u6599")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-catalog-search" }, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": `\u641C\u7D22${labels[tab]}`, placeholder: tab === "suppliers" ? "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u3001\u8054\u7CFB\u4EBA\u3001\u5FAE\u4FE1\u6216\u7535\u8BDD" : tab === "companies" ? "\u641C\u7D22\u516C\u53F8\u540D\u79F0\u6216\u7701\u4EFD" : "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u6216\u63D0\u9192\u5185\u5BB9", value: catalogQuery, onChange: (e) => setCatalogQuery(e.target.value) }), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setCatalogQuery("") }, "\u6E05\u7A7A\u641C\u7D22"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u627E\u5230 ", catalogResults.length, " / ", (data[tab] || []).length, " \u6761")), editorOpen && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-editor-backdrop" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-editor", role: "dialog", "aria-modal": "true", "aria-label": `${edit === null ? "\u65B0\u589E" : "\u7F16\u8F91"}${labels[tab]}` }, /* @__PURE__ */ import_react2.default.createElement("h2", null, edit === null ? "\u65B0\u589E" : "\u7F16\u8F91", labels[tab]), /* @__PURE__ */ import_react2.default.createElement("form", { onSubmit: (e) => {
     e.preventDefault();
     act(recordForm);
-  } }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement("input", { value: form[k] ?? "", onChange: (e) => setForm({ ...form, [k]: e.target.value }) })))), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary" }, edit === null ? "\u6DFB\u52A0\u8D44\u6599" : "\u4FDD\u5B58\u4FEE\u6539"), /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", onClick: () => {
+  } }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, tab === "companies" && k === "province" ? /* @__PURE__ */ import_react2.default.createElement("select", { "aria-label": l, required: true, value: form[k] || "", onChange: (e) => setForm({ ...form, [k]: e.target.value }) }, /* @__PURE__ */ import_react2.default.createElement("option", { value: "" }, "\u8BF7\u9009\u62E9\u7701\u4EFD"), provinceOptions.map((p) => /* @__PURE__ */ import_react2.default.createElement("option", { key: p }, p))) : /* @__PURE__ */ import_react2.default.createElement("input", { required: tab === "companies", value: form[k] ?? "", onChange: (e) => setForm({ ...form, [k]: e.target.value }) })))), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary" }, edit === null ? "\u6DFB\u52A0\u8D44\u6599" : "\u4FDD\u5B58\u4FEE\u6539"), /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", onClick: () => {
     setEdit(null);
     setForm({});
     setEditorOpen(false);
@@ -74342,7 +74368,7 @@ function App() {
     setEditorOpen(true);
   } }, "\u7F16\u8F91"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
     if (confirm("\u5220\u9664\u8FD9\u6761\u8D44\u6599\uFF1F")) {
-      setData({ ...data, [tab]: data[tab].filter((_, n) => n !== i) });
+      changeData(tab, data[tab].filter((_, n) => n !== i));
       setEdit(null);
       setForm({});
     }

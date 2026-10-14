@@ -25,3 +25,21 @@ test('合并的需求公司单元格用于每条产品',()=>{
  s.addRow(['需求公司','品牌','型号','数量']);s.addRow(['武汉吉利汽车部件有限公司','ABC','A',1]);s.addRow(['','ABC','B',2]);s.mergeCells('A2:A3');
  const rows=sheetRows(s,1,mapColumns(s,1));assert.equal(rows.length,2);assert.equal(destinationFor(rows).province,'湖北省');
 });
+
+test('手动公司省份覆盖名称识别并用于询价，删除后恢复推断',()=>{
+ const companies=[{company:' 无地名（集团）有限公司 ',province:'广东省'},{company:'武汉吉利汽车部件有限公司',province:'浙江省'}];
+ assert.equal(companyProvince('无地名(集团)有限公司',companies),'广东省');
+ assert.equal(companyProvince('武汉吉利汽车部件有限公司',companies),'浙江省');
+ assert.equal(companyProvince('武汉吉利汽车部件有限公司',[]),'湖北省');
+ const rows=[{company:'无地名（集团）有限公司',model:'A',quantity:1}];
+ assert.equal(destinationFor(rows,companies).province,'广东省');
+ assert.match(inquiry(rows,companies),/发往广东省/);
+ assert.ok(destinationFor([...rows,{company:'武汉吉利汽车部件有限公司'}],companies).error);
+});
+
+test('旧资料兼容，公司配置拒绝空名称、无效省份与归一化重复名称',async()=>{
+ const {emptyData,validateData}=await import('../src/core.mjs');
+ const old=emptyData();delete old.companies;assert.doesNotThrow(()=>validateData(old));
+ for(const companies of [[{company:' ',province:'湖北省'}],[{company:'某公司',province:'不存在'}],[{company:'某（集团）',province:'湖北省'},{company:'某(集团)',province:'浙江省'}],{}])assert.throws(()=>validateData({...emptyData(),companies}));
+ assert.doesNotThrow(()=>validateData({...emptyData(),companies:[{company:'某公司',province:'湖北省'}]}));
+});

@@ -1,4 +1,4 @@
-import {destinationFor} from './destination.mjs';
+import {destinationFor,provinceOptions,normalizeCompany} from './destination.mjs';
 export const fields = {brand:'品牌',name:'品名',model:'型号',quantity:'数量',unit:'单位',note:'备注',price:'单价',materialCode:'物料编码',company:'需求公司'};
 export const normalize = v => String(v ?? '').normalize('NFKC').trim().toLowerCase();
 export const clean = v => String(v ?? '').replace(/[\r\n\t]+/g,' ').trim();
@@ -25,8 +25,8 @@ export function quoteFor(row, data, date=today()) {
  return {reason:valid.length>1?'多个有效报价，请先整理价格表':candidates.length?'报价过期、税务口径/币种/起订量不符或计价条件不完整':'无匹配价格'};
 }
 export function reminders(row,data) {return data.rules.filter(r=>(!r.brand||canonical(r.brand,data.suppliers)===canonical(row.brand,data.suppliers))&&(!normalize(r.keyword)||normalize(row.name).includes(normalize(r.keyword)))&&(!r.noSupplier||!suppliersFor(row,data.suppliers).length));}
-export function inquiry(rows) {
- const {province}=destinationFor(rows);
+export function inquiry(rows,companies=[]) {
+ const {province}=destinationFor(rows,companies);
  const items=rows.map(r=>[
   `【品牌】${clean(r.brand)||'待确认'}`,
   `【品名】${clean(r.name)||'—'}`,
@@ -37,11 +37,21 @@ export function inquiry(rows) {
 }
 export function searchLinks(brand, generic=false) {const q=encodeURIComponent(clean(brand)); return [{name:'淘宝搜索',url:`https://s.taobao.com/search?q=${q}`},{name:'京东搜索',url:`https://search.jd.com/Search?keyword=${q}`},{name:'1688 搜索',url:`https://s.1688.com/selloffer/offer_search.htm?keywords=${q}`},{name:generic?'查找供货渠道':'查找官网',url:`https://www.bing.com/search?q=${encodeURIComponent(clean(brand)+(generic?' 供应商 联系方式':' 官方网站 官方直营 联系方式'))}`} ];}
 export function safeUrl(value) {try {let u=new URL(value); return ['https:','http:'].includes(u.protocol)?u.href:null;}catch{return null;}}
-export const emptyData=()=>({suppliers:[],prices:[],channels:[],rules:[]});
+export const emptyData=()=>({suppliers:[],prices:[],channels:[],rules:[],companies:[]});
 export function validateData(d) {
  if(!d||typeof d!=='object') throw Error('资料必须是对象');
  for(const key of ['suppliers','prices','channels','rules']) if(!Array.isArray(d[key])||d[key].some(x=>!x||typeof x!=='object'||Array.isArray(x))) throw Error(`${key} 必须是记录列表`);
  for(const key of ['suppliers','prices','channels','rules']) for(const record of d[key]) for(const [field,value] of Object.entries(record)) if(value!==null&&!['string','number','boolean'].includes(typeof value)) throw Error(`${key}.${field} 必须是文本、数字或布尔值`);
+ if(d.companies!==undefined){
+  if(!Array.isArray(d.companies))throw Error('公司省份必须是记录列表');
+  const names=new Set();
+  for(const c of d.companies){
+   if(!c||typeof c.company!=='string'||!normalizeCompany(c.company))throw Error('公司省份必须填写需求公司');
+   if(!provinceOptions.includes(c.province))throw Error('请选择有效的发往省份');
+   const name=normalizeCompany(c.company);if(names.has(name))throw Error('同一需求公司只能配置一条省份记录，请编辑已有记录');names.add(name);
+   for(const value of Object.values(c))if(value!==null&&!['string','number','boolean'].includes(typeof value))throw Error('公司省份字段必须是文本、数字或布尔值');
+  }
+ }
  for(const s of d.suppliers){if(!String(s.brand||'').trim())throw Error('供货商资料必须填写品牌');if(s.url&&!safeUrl(s.url))throw Error('供货商店铺网址必须是有效的 http 或 https 链接');}
  for(const p of d.prices) if(!p.brand||!p.model||!p.unit||p.price===''||!Number.isFinite(Number(p.price))||Number(p.price)<0) throw Error('价格必须填写品牌、型号、单位和非负单价');
  for(const c of d.channels) if(!c.brand||!safeUrl(c.url)||!c.source||!safeUrl(c.source)||!validDate(c.checkedAt)) throw Error('渠道必须填写品牌、有效网址、核实来源网址和核实日期');

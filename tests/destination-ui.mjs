@@ -1,0 +1,30 @@
+import {chromium,expect} from '@playwright/test';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {exportBook} from '../src/excel.mjs';
+import {startPreview} from './preview-fixture.mjs';
+const f=await startPreview();let browser;
+try{
+ await mkdir(f.dataDir,{recursive:true});
+ await writeFile(f.dataDir+'/procurement-workbench.json',JSON.stringify({version:1,data:{suppliers:[],prices:[],channels:[],rules:[]}}));
+ const path=f.root+'/需求.xlsx';await writeFile(path,await exportBook([{brand:'ABC',model:'A',quantity:1,company:'无地名集团有限公司'}]));
+ browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+ const p=await browser.newPage();p.setDefaultTimeout(15000);console.log("浏览器已启动");p.on('dialog',d=>d.accept());
+ await p.route('**/procurement-workbench/api',route=>{if(route.request().method()==='POST'&&route.request().postDataJSON().action==='openExcel')return route.continue({postData:JSON.stringify({action:'openExcel',path})});return route.continue();});
+ await p.goto(f.url);console.log("预览已打开");
+ await p.getByRole('button',{name:'打开原 Excel',exact:true}).click();await p.getByRole('button',{name:'确认导入',exact:true}).click();
+ console.log('已导入');await p.getByRole('checkbox',{name:'选择当前筛选的全部行'}).check();await expect(p.locator('.pw-ticket')).toContainText('暂时无法确定');
+ await p.getByRole('button',{name:'配置公司省份',exact:true}).click();await expect(p.getByLabel('需求公司',{exact:true})).toHaveValue('无地名集团有限公司');
+ console.log('已打开配置');await p.getByLabel('发往省份',{exact:true}).selectOption('广东省');await p.getByRole('button',{name:'添加资料',exact:true}).click();
+ await expect(p.locator('.pw-storage-status')).toContainText('已保存到文件');
+ await p.getByRole('button',{name:'采购明细',exact:true}).click();await expect(p.getByLabel('询价文本')).toHaveValue(/发往广东省/);
+ await p.getByLabel('询价文本').fill('旧的手动文字');
+ await p.getByRole('button',{name:'配置公司省份',exact:true}).click();await p.getByRole('button',{name:'编辑',exact:true}).click();
+ await p.getByLabel('发往省份',{exact:true}).selectOption('湖北省');await p.getByRole('button',{name:'保存修改',exact:true}).click();
+ await expect(p.locator('.pw-storage-status')).toContainText('已保存到文件');await p.getByRole('button',{name:'采购明细',exact:true}).click();await expect(p.getByLabel('询价文本')).toHaveValue(/发往湖北省/);
+ await p.reload();await p.getByRole('button',{name:/^公司省份/}).click();await expect(p.locator('.pw-catalog-list')).toContainText('湖北省');
+ await p.getByLabel('搜索公司省份').fill('无地名');await expect(p.locator('.pw-catalog-list article')).toHaveCount(1);
+ await p.getByRole('button',{name:'新增公司省份',exact:true}).click();await p.getByLabel('需求公司',{exact:true}).fill('无地名集团有限公司');await p.getByLabel('发往省份',{exact:true}).selectOption('浙江省');await p.getByRole('button',{name:'添加资料',exact:true}).click();await expect(p.getByRole('status')).toContainText('只能配置一条');await p.getByRole('button',{name:'取消编辑',exact:true}).click();
+ await p.getByRole('button',{name:'删除',exact:true}).click();await expect(p.locator('.pw-catalog-list article')).toHaveCount(0);await expect(p.locator('.pw-storage-status')).toContainText('已保存到文件');
+ const saved=JSON.parse(await readFile(f.dataDir+'/procurement-workbench.json','utf8'));if(saved.data.companies.length)throw Error('删除未持久化');
+ console.log('公司省份 UI PASS：旧资料、快捷新增、询价更新、编辑清除旧文本、持久化、搜索、重复拦截、删除');
+}finally{await browser?.close();await f.close();}

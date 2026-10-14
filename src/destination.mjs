@@ -11,9 +11,13 @@ const regions={
  '内蒙古自治区':'内蒙古|呼和浩特|包头','广西壮族自治区':'广西|南宁|柳州|桂林','西藏自治区':'西藏|拉萨','宁夏回族自治区':'宁夏|银川','新疆维吾尔自治区':'新疆|乌鲁木齐',
  '香港特别行政区':'香港','澳门特别行政区':'澳门','台湾省':'台湾|台北'
 };
+export const provinceOptions=Object.keys(regions);
+export const normalizeCompany=value=>String(value||'').normalize('NFKC').replace(/\s/g,'');
 export function demandCompany(row){return String(row.company||row.sourceExtra?.find(e=>['需求公司','需求单位','采购公司'].includes(String(e.header).trim()))?.value||'').trim();}
-export function companyProvince(value){
- const name=String(value||'').normalize('NFKC').replace(/\s/g,'');
+export function companyProvince(value,companies=[]){
+ const name=normalizeCompany(value);
+ const configured=companies.filter(c=>normalizeCompany(c.company)===name);
+ if(configured.length){const values=new Set(configured.map(c=>c.province));return values.size===1&&provinceOptions.includes(configured[0].province)?configured[0].province:'';}
  if(knownCompanies[name])return knownCompanies[name];
  const hits=new Set();
  for(const [province,places] of Object.entries(regions))for(const place of places.split('|')){
@@ -21,10 +25,10 @@ export function companyProvince(value){
  }
  return hits.size===1?[...hits][0]:'';
 }
-export function destinationFor(rows){
+export function destinationFor(rows,companies=[]){
  if(!rows.length)return {province:'',error:''};
  const provinces=new Set();
- for(const row of rows){const company=demandCompany(row);if(!company)return {province:'',error:'所选明细缺少需求公司，请检查 Excel 的需求公司列。'};const province=companyProvince(company);if(!province)return {province:'',error:`暂时无法确定「${company}」所在省份，请先核实公司所在地。`};provinces.add(province);}
+ for(const row of rows){const company=demandCompany(row);if(!company)return {province:'',error:'所选明细缺少需求公司，请检查 Excel 的需求公司列。'};const province=companyProvince(company,companies);if(!province)return {province:'',error:`暂时无法确定「${company}」所在省份，请在“公司省份”中配置发往省份。`};provinces.add(province);}
  if(provinces.size>1)return {province:'',error:'所选需求公司涉及多个省份，请按省份分批选择询价。'};
  return {province:[...provinces][0],error:''};
 }
