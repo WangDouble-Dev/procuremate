@@ -1,3 +1,5 @@
+> 0.3.21：移除采购表“询价状态”列，保留已询价行底色与左侧标识。勾选行后通过顶部按钮更改状态，状态筛选与计数保留。
+
 > 0.3.20：通用注意事项移至操作栏下、采购表上方，宽屏横向排列，默认显示前三条，可展开全部或收起；新一轮导入时恢复收起状态。
 
 > 0.3.19：移除采购明细中“未指定具体品牌”的附加提示，保留原始品牌名称、品名和备注。
@@ -42,7 +44,7 @@
 2. 在这个终端执行：
 
    ```sh
-   dsh plugin add '/Users/double/buyer/plugins/dsh-procurement-workbench-0.3.20.tgz'
+   dsh plugin add '/Users/double/buyer/plugins/dsh-procurement-workbench-0.3.21.tgz'
    ```
 
 3. 重启 Desktop，在侧边栏打开「采购工作台」。
