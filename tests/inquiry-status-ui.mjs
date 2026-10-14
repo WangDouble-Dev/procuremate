@@ -19,6 +19,6 @@ try{
  await p.getByRole('button',{name:'A：已询价，改为未询价',exact:true}).click();await expect(p.locator('tbody tr')).toHaveCount(0);
  await p.getByLabel('搜索采购明细').fill('');await p.getByLabel('筛选询价状态').selectOption('all');await expect(p.locator('tr.pw-inquired')).toHaveCount(1);
  await p.getByRole('checkbox',{name:'选择当前筛选的全部行'}).check();await p.getByRole('button',{name:'选中标为未询价',exact:true}).click();await expect(p.locator('tr.pw-inquired')).toHaveCount(0);await expect(p.locator('.pw-storage-status')).toContainText('已保存到文件');
- await p.setViewportSize({width:1440,height:1000});await p.screenshot({path:'test-results/询价标记.png',fullPage:true});
+ await p.getByRole('button',{name:'A：未询价，标为已询价',exact:true}).click();await expect(p.locator('.pw-storage-status')).toContainText('已保存到文件');await p.setViewportSize({width:1440,height:1000});await p.screenshot({path:'test-results/询价标记.png',fullPage:true});
  console.log('询价标记 UI PASS：逐行标记、批量标记、状态与搜索筛选、重载重新导入恢复、撤销');
 }finally{await browser?.close();await f.close();}
