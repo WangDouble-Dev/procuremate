@@ -1,3 +1,5 @@
+> 0.3.19：移除采购明细中“未指定具体品牌”的附加提示，保留原始品牌名称、品名和备注。
+
 > 0.3.18：删除物料编码的专用字段定义、表头映射及界面排除分支。原表中的编码列按普通未映射列处理，不再生成额外的编码字段或空导出列。
 
 > 0.3.17：移除导入列对应关系中的“物料编码”选项及采购明细中的编码展示；自动识别、切换工作表和调整表头均不再映射该字段。原始编码列仍作为未映射列保留，原 Excel 不变。
@@ -38,7 +40,7 @@
 2. 在这个终端执行：
 
    ```sh
-   dsh plugin add '/Users/double/buyer/plugins/dsh-procurement-workbench-0.3.18.tgz'
+   dsh plugin add '/Users/double/buyer/plugins/dsh-procurement-workbench-0.3.19.tgz'
    ```
 
 3. 重启 Desktop，在侧边栏打开「采购工作台」。
