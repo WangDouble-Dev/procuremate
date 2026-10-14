@@ -74031,6 +74031,8 @@ var style_default = `.pw{--ink:#223831;--green:#216452;--line:#dbe4df;--paper:#f
 .pw-catalog-search{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px 0}.pw-catalog-search input{flex:1;min-width:180px}.pw-catalog-list{max-height:60vh;overflow:auto;overscroll-behavior:contain;padding-right:12px}.pw-editor-backdrop{position:fixed;inset:0;z-index:1000;background:#18342866;display:flex;align-items:center;justify-content:center;padding:20px}.pw-editor{width:min(760px,100%);max-height:85vh;overflow:auto;background:white;border-radius:10px;padding:24px;box-shadow:0 12px 40px #0003}.pw-row-notes{min-width:190px!important}.pw-row-notes .pw-alert{margin:0 0 8px}.pw-catalog-list article:first-child{margin-top:0}
 
 .pw tr.pw-inquired{background:#c5def7}.pw tr.pw-inquired td{border-bottom-color:#9cbfe2}.pw tr.pw-inquired td:first-child{box-shadow:inset 5px 0 #245e96}.pw tr.pw-inquired .pw-inquiry-status{color:#fff;background:#245e96;border-color:#245e96;font-weight:600}.pw tr.pw-inquired .pw-inquiry-status:hover{background:#194873;border-color:#194873}.pw .pw-inquiry-status{font-size:12px;min-height:30px;padding:5px 9px}
+
+.pw tr.pw-inquired .pw-row-notes{background:#fff;border-bottom-color:#e8eee9}.pw tr.partner.pw-inquired .pw-row-notes{background:#f0f8f3}
 `;
 
 // src/useDiskState.jsx
@@ -74334,7 +74336,7 @@ function App() {
       return { ...r, supplier: ss.map((s) => s.name).join(" / "), contact: ss.map((s) => [s.contact, s.wechat, s.phone].filter(Boolean).join(" ")).join(" / ") };
     })), "\u91C7\u8D2D\u660E\u7EC6-\u6574\u7406\u7248.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     setMessage("\u5DF2\u5BFC\u51FA\u6574\u7406\u7248 Excel\uFF1B\u5DF2\u751F\u6210\u6574\u7406\u7248\u3002");
-  }) }, "\u5BFC\u51FA\u6574\u7406\u7248")), book && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u786E\u8BA4\u8868\u5934\u4E0E\u5217\u5BF9\u5E94\u5173\u7CFB"), /* @__PURE__ */ import_react2.default.createElement("p", null, fileName, " \xB7 \u5BFC\u5165\u5C06\u66FF\u6362\u5F53\u524D\u91C7\u8D2D\u660E\u7EC6\uFF0C\u4F9B\u8D27\u5546\u8D44\u6599\u4F1A\u4FDD\u7559\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u5DE5\u4F5C\u8868", /* @__PURE__ */ import_react2.default.createElement("select", { value: sheet, onChange: (e) => {
+  }) }, "\u5BFC\u51FA\u6574\u7406\u7248")), book && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u786E\u8BA4\u8868\u5934\u4E0E\u5217\u5BF9\u5E94\u5173\u7CFB"), /* @__PURE__ */ import_react2.default.createElement("p", null, fileName, " \xB7 \u5BFC\u5165\u5C06\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u5BFC\u5165\u660E\u7EC6\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\uFF1B\u4F9B\u8D27\u5546\u8D44\u6599\u4F1A\u4FDD\u7559\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u5DE5\u4F5C\u8868", /* @__PURE__ */ import_react2.default.createElement("select", { value: sheet, onChange: (e) => {
     setSheet(e.target.value);
     const found = detectHeader(book.getWorksheet(e.target.value));
     setHeader(found.headerRow);
@@ -74348,13 +74350,14 @@ function App() {
     if (new Set(Object.values(mapping).filter(Boolean).map(String)).size !== Object.values(mapping).filter(Boolean).length) throw Error("\u4E0D\u540C\u5B57\u6BB5\u4E0D\u80FD\u4F7F\u7528\u540C\u4E00\u5217");
     const next = sheetRows(book.getWorksheet(sheet), header, mapping).map((r) => ({ ...r, sourceFile: fileName }));
     if (next.length > 1e4) throw Error("\u660E\u7EC6\u8D85\u8FC7 10000 \u884C\uFF0C\u8BF7\u62C6\u5206\u5BFC\u5165");
-    if (rows.length && !confirm("\u66FF\u6362\u5F53\u524D\u91C7\u8D2D\u660E\u7EC6\uFF1F\u5EFA\u8BAE\u5148\u5BFC\u51FA\u5907\u4EFD\u3002")) return;
+    if (rows.length && !confirm("\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\u5E76\u66FF\u6362\u5F53\u524D\u660E\u7EC6\uFF1F\u5BFC\u5165\u7684\u660E\u7EC6\u5C06\u5168\u90E8\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\u3002")) return;
+    changeData("inquiryMarks", updateInquiryMarks(data.inquiryMarks, next, false));
     disk.bindExcel(sourceExcel);
     setRows(next);
     setInquiryFilter("all");
     resetSelection();
     setBook(null);
-    setMessage(`\u5DF2\u5BFC\u5165 ${next.length} \u884C\u3002\u8BF7\u52FE\u9009\u9700\u8981\u8BE2\u4EF7\u7684\u884C\u3002`);
+    setMessage(`\u5DF2\u5BFC\u5165 ${next.length} \u884C\uFF0C\u5DF2\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u4E3A\u672A\u8BE2\u4EF7\u3002`);
   }) }, "\u786E\u8BA4\u5BFC\u5165"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setBook(null) }, "\u53D6\u6D88")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-summary" }, /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.length), " \u884C\u9700\u6C42"), /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.filter((r) => suppliersFor(r, data.suppliers).length).length), " \u884C\u6709\u5408\u4F5C\u4F9B\u8D27\u5546"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u8BE2\u4EF7 ", doneIds.size, " \u884C \xB7 \u672A\u8BE2\u4EF7 ", rows.length - doneIds.size, " \u884C"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u9009 ", chosen.length, " \u884C")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-grid" }, /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-sheet" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-table-scroll" }, /* @__PURE__ */ import_react2.default.createElement("table", null, /* @__PURE__ */ import_react2.default.createElement("thead", null, /* @__PURE__ */ import_react2.default.createElement("tr", null, /* @__PURE__ */ import_react2.default.createElement("th", null, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u9009\u62E9\u5F53\u524D\u7B5B\u9009\u7684\u5168\u90E8\u884C", type: "checkbox", checked: !!shown.length && shown.every((r) => selected.includes(r.id)), onChange: (e) => {
     setSelected(e.target.checked ? [.../* @__PURE__ */ new Set([...selected, ...shown.map((r) => r.id)])] : selected.filter((id) => !shown.some((r) => r.id === id)));
     setManual("");
