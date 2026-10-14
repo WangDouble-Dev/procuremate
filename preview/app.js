@@ -74218,7 +74218,7 @@ function App() {
     setManual("");
   }
   function autoMap(b, s, h) {
-    setMapping(mapColumns(b.getWorksheet(s), h));
+    setMapping(Object.fromEntries(Object.entries(mapColumns(b.getWorksheet(s), h)).filter(([k]) => k !== "price")));
   }
   async function loadOriginal() {
     const value = await disk.openExcel();
@@ -74231,7 +74231,7 @@ function App() {
     setSheet(b.worksheets[0].name);
     const detected = detectHeader(b.worksheets[0]);
     setHeader(detected.headerRow);
-    setMapping(detected.mapping);
+    setMapping(Object.fromEntries(Object.entries(detected.mapping).filter(([k]) => k !== "price")));
   }
   async function copy() {
     if (!chosen.length) throw Error("\u8BF7\u5148\u52FE\u9009\u8981\u8BE2\u4EF7\u7684\u884C");
@@ -74291,12 +74291,12 @@ function App() {
     setSheet(e.target.value);
     const found = detectHeader(book.getWorksheet(e.target.value));
     setHeader(found.headerRow);
-    setMapping(found.mapping);
+    setMapping(Object.fromEntries(Object.entries(found.mapping).filter(([k]) => k !== "price")));
   } }, book.worksheets.map((s) => /* @__PURE__ */ import_react2.default.createElement("option", { key: s.name }, s.name)))), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u8868\u5934\u884C", /* @__PURE__ */ import_react2.default.createElement("input", { type: "number", min: "1", value: header, onChange: (e) => {
     const h = Math.max(1, Number(e.target.value));
     setHeader(h);
     autoMap(book, sheet, h);
-  } })), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(fields).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement("select", { "aria-label": `${l}\u5BF9\u5E94\u5217`, value: mapping[k] || "", onChange: (e) => setMapping({ ...mapping, [k]: e.target.value }) }, /* @__PURE__ */ import_react2.default.createElement("option", { value: "" }, "\u4E0D\u5BFC\u5165"), Array.from({ length: Math.min(book.getWorksheet(sheet).columnCount, 100) }, (_, i) => /* @__PURE__ */ import_react2.default.createElement("option", { key: i, value: i + 1 }, i + 1, " \xB7 ", book.getWorksheet(sheet).getRow(header).getCell(i + 1).text || "\u7A7A\u8868\u5934")))))), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", onClick: () => act(() => {
+  } })), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(fields).filter(([k]) => k !== "price").map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement("select", { "aria-label": `${l}\u5BF9\u5E94\u5217`, value: mapping[k] || "", onChange: (e) => setMapping({ ...mapping, [k]: e.target.value }) }, /* @__PURE__ */ import_react2.default.createElement("option", { value: "" }, "\u4E0D\u5BFC\u5165"), Array.from({ length: Math.min(book.getWorksheet(sheet).columnCount, 100) }, (_, i) => /* @__PURE__ */ import_react2.default.createElement("option", { key: i, value: i + 1 }, i + 1, " \xB7 ", book.getWorksheet(sheet).getRow(header).getCell(i + 1).text || "\u7A7A\u8868\u5934")))))), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", onClick: () => act(() => {
     if (!mapping.brand || !mapping.model || !mapping.quantity) throw Error("\u8BF7\u81F3\u5C11\u5BF9\u5E94\u54C1\u724C\u3001\u578B\u53F7\u3001\u6570\u91CF\u5217");
     if (new Set(Object.values(mapping).filter(Boolean).map(String)).size !== Object.values(mapping).filter(Boolean).length) throw Error("\u4E0D\u540C\u5B57\u6BB5\u4E0D\u80FD\u4F7F\u7528\u540C\u4E00\u5217");
     const next = sheetRows(book.getWorksheet(sheet), header, mapping).map((r) => ({ ...r, sourceFile: fileName }));
