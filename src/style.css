@@ -3,3 +3,5 @@
 .pw .pw-content{padding:0;margin:0;border:0;min-width:0}.pw-storage-status{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:12px;overflow-wrap:anywhere}.pw-import input[aria-label="资料存储目录"]{width:min(720px,75vw)}
 
 .pw-catalog-search{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px 0}.pw-catalog-search input{flex:1;min-width:180px}.pw-catalog-list{max-height:60vh;overflow:auto;overscroll-behavior:contain;padding-right:12px}.pw-editor-backdrop{position:fixed;inset:0;z-index:1000;background:#18342866;display:flex;align-items:center;justify-content:center;padding:20px}.pw-editor{width:min(760px,100%);max-height:85vh;overflow:auto;background:white;border-radius:10px;padding:24px;box-shadow:0 12px 40px #0003}.pw-row-notes{min-width:190px!important}.pw-row-notes .pw-alert{margin:0 0 8px}.pw-catalog-list article:first-child{margin-top:0}
+
+.pw tr.pw-inquired{background:#edf1f5}.pw tr.pw-inquired .pw-inquiry-status{color:#34546e;background:#dde8f1;border-color:#b9cddd;font-weight:600}.pw .pw-inquiry-status{font-size:12px;min-height:30px;padding:5px 9px}

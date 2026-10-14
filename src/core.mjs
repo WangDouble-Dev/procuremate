@@ -37,9 +37,10 @@ export function inquiry(rows,companies=[]) {
 }
 export function searchLinks(brand, generic=false) {const q=encodeURIComponent(clean(brand)); return [{name:'淘宝搜索',url:`https://s.taobao.com/search?q=${q}`},{name:'京东搜索',url:`https://search.jd.com/Search?keyword=${q}`},{name:'1688 搜索',url:`https://s.1688.com/selloffer/offer_search.htm?keywords=${q}`},{name:generic?'查找供货渠道':'查找官网',url:`https://www.bing.com/search?q=${encodeURIComponent(clean(brand)+(generic?' 供应商 联系方式':' 官方网站 官方直营 联系方式'))}`} ];}
 export function safeUrl(value) {try {let u=new URL(value); return ['https:','http:'].includes(u.protocol)?u.href:null;}catch{return null;}}
-export const emptyData=()=>({suppliers:[],prices:[],channels:[],rules:[],companies:[]});
+export const emptyData=()=>({suppliers:[],prices:[],channels:[],rules:[],companies:[],inquiryMarks:[]});
 export function validateData(d) {
  if(!d||typeof d!=='object') throw Error('资料必须是对象');
+ if(d.inquiryMarks!==undefined&&(!Array.isArray(d.inquiryMarks)||d.inquiryMarks.some(k=>typeof k!=='string'||!k)))throw Error('询价标记必须是有效记录列表');
  for(const key of ['suppliers','prices','channels','rules']) if(!Array.isArray(d[key])||d[key].some(x=>!x||typeof x!=='object'||Array.isArray(x))) throw Error(`${key} 必须是记录列表`);
  for(const key of ['suppliers','prices','channels','rules']) for(const record of d[key]) for(const [field,value] of Object.entries(record)) if(value!==null&&!['string','number','boolean'].includes(typeof value)) throw Error(`${key}.${field} 必须是文本、数字或布尔值`);
  if(d.companies!==undefined){
@@ -65,3 +66,7 @@ export function brandSearchText(brand,suppliers){const index=brandIndex(supplier
 export function matchesPurchase(row,query,suppliers){const q=normalize(query);return !q||normalize(`${brandSearchText(row.brand,suppliers)} ${row.name||''} ${row.model||''}`).includes(q);}
 export function matchesReference(record,query,suppliers){const q=normalize(query);return !q||normalize(`${Object.values(record).join(' ')} ${brandSearchText(record.brand,suppliers)}`).includes(q);}
 export function rowReminders(row,data){return data.rules.filter(rule=>(rule.brand||normalize(rule.keyword))&&reminders(row,{...data,rules:[rule]}).length);}
+
+// A changed row or a row from another file must not inherit an inquiry mark.
+export function inquiryRowKey(row){return JSON.stringify([row.sourceFile||'',row.sourceSheet||'',row.sourceRow??row.id,...Object.keys(fields).map(k=>String(row[k]??'')),row.sourceExtra||[]]);}
+export function updateInquiryMarks(marks,rows,done){const next=new Set(marks||[]);for(const row of rows){const key=inquiryRowKey(row);if(done)next.add(key);else next.delete(key);}return [...next];}
