@@ -1,6 +1,6 @@
 {
   "name": "dsh-procuremate",
-  "version": "0.3.26",
+  "version": "0.3.29",
   "type": "module",
   "description": "采购助手 ProcureMate：Excel 需求导入、询价文本、供货商管理与采购提醒",
   "exports": {
