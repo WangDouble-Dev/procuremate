@@ -47336,7 +47336,7 @@ function destinationFor(rows, companies = []) {
 var import_react2 = __toESM(require_react(), 1);
 
 // src/core.mjs
-var fields = { brand: "\u54C1\u724C", name: "\u54C1\u540D", model: "\u578B\u53F7", quantity: "\u6570\u91CF", unit: "\u5355\u4F4D", note: "\u5907\u6CE8", price: "\u5355\u4EF7", company: "\u9700\u6C42\u516C\u53F8" };
+var fields = { brand: "\u54C1\u724C", name: "\u54C1\u540D", model: "\u578B\u53F7", materialCode: "\u7269\u6599\u7F16\u7801", quantity: "\u6570\u91CF", unit: "\u5355\u4F4D", note: "\u5907\u6CE8", price: "\u5355\u4EF7", company: "\u9700\u6C42\u516C\u53F8" };
 var normalize = (v) => String(v ?? "").normalize("NFKC").trim().toLowerCase();
 var clean = (v) => String(v ?? "").replace(/[\r\n\t]+/g, " ").trim();
 function validDate(v) {
@@ -47404,12 +47404,25 @@ function safeUrl(value) {
     return null;
   }
 }
-var emptyData = () => ({ suppliers: [], prices: [], channels: [], rules: [], companies: [], inquiryMarks: [] });
+var emptyData = () => ({ suppliers: [], channels: [], rules: [], companies: [], inquiryMarks: [] });
+var emptyHistory = () => [];
+function historyMaterialCodes(history) {
+  return new Set((Array.isArray(history) ? history : []).map((item) => normalize(item)).filter(Boolean));
+}
+function hasHistoryPrice(row, history) {
+  const code = normalize(row?.materialCode);
+  return !!code && historyMaterialCodes(history).has(code);
+}
+function withoutLegacyPrices(d) {
+  if (!d || typeof d !== "object") return d;
+  const { prices, ...rest } = d;
+  return rest;
+}
 function validateData(d) {
   if (!d || typeof d !== "object") throw Error("\u8D44\u6599\u5FC5\u987B\u662F\u5BF9\u8C61");
   if (d.inquiryMarks !== void 0 && (!Array.isArray(d.inquiryMarks) || d.inquiryMarks.some((k) => typeof k !== "string" || !k))) throw Error("\u8BE2\u4EF7\u6807\u8BB0\u5FC5\u987B\u662F\u6709\u6548\u8BB0\u5F55\u5217\u8868");
-  for (const key of ["suppliers", "prices", "channels", "rules"]) if (!Array.isArray(d[key]) || d[key].some((x) => !x || typeof x !== "object" || Array.isArray(x))) throw Error(`${key} \u5FC5\u987B\u662F\u8BB0\u5F55\u5217\u8868`);
-  for (const key of ["suppliers", "prices", "channels", "rules"]) for (const record of d[key]) for (const [field, value] of Object.entries(record)) if (value !== null && !["string", "number", "boolean"].includes(typeof value)) throw Error(`${key}.${field} \u5FC5\u987B\u662F\u6587\u672C\u3001\u6570\u5B57\u6216\u5E03\u5C14\u503C`);
+  for (const key of ["suppliers", "channels", "rules"]) if (!Array.isArray(d[key]) || d[key].some((x) => !x || typeof x !== "object" || Array.isArray(x))) throw Error(`${key} \u5FC5\u987B\u662F\u8BB0\u5F55\u5217\u8868`);
+  for (const key of ["suppliers", "channels", "rules"]) for (const record of d[key]) for (const [field, value] of Object.entries(record)) if (value !== null && !["string", "number", "boolean"].includes(typeof value)) throw Error(`${key}.${field} \u5FC5\u987B\u662F\u6587\u672C\u3001\u6570\u5B57\u6216\u5E03\u5C14\u503C`);
   if (d.companies !== void 0) {
     if (!Array.isArray(d.companies)) throw Error("\u516C\u53F8\u7701\u4EFD\u5FC5\u987B\u662F\u8BB0\u5F55\u5217\u8868");
     const names = /* @__PURE__ */ new Set();
@@ -47426,7 +47439,6 @@ function validateData(d) {
     if (!String(s.brand || "").trim()) throw Error("\u4F9B\u8D27\u5546\u8D44\u6599\u5FC5\u987B\u586B\u5199\u54C1\u724C");
     if (s.url && !safeUrl(s.url)) throw Error("\u4F9B\u8D27\u5546\u5E97\u94FA\u7F51\u5740\u5FC5\u987B\u662F\u6709\u6548\u7684 http \u6216 https \u94FE\u63A5");
   }
-  for (const p of d.prices) if (!p.brand || !p.model || !p.unit || p.price === "" || !Number.isFinite(Number(p.price)) || Number(p.price) < 0) throw Error("\u4EF7\u683C\u5FC5\u987B\u586B\u5199\u54C1\u724C\u3001\u578B\u53F7\u3001\u5355\u4F4D\u548C\u975E\u8D1F\u5355\u4EF7");
   for (const c of d.channels) if (!c.brand || !safeUrl(c.url) || !c.source || !safeUrl(c.source) || !validDate(c.checkedAt)) throw Error("\u6E20\u9053\u5FC5\u987B\u586B\u5199\u54C1\u724C\u3001\u6709\u6548\u7F51\u5740\u3001\u6838\u5B9E\u6765\u6E90\u7F51\u5740\u548C\u6838\u5B9E\u65E5\u671F");
   for (const r of d.rules) if (!r.message) throw Error("\u63D0\u9192\u5FC5\u987B\u586B\u5199\u5185\u5BB9");
   return d;
@@ -73872,6 +73884,7 @@ var aliases = {
   unit: ["\u5355\u4F4D", "\u8BA1\u91CF\u5355\u4F4D"],
   note: ["\u5907\u6CE8", "\u8BF4\u660E"],
   price: ["\u5355\u4EF7", "\u91C7\u8D2D\u4EF7", "\u542B\u7A0E\u5355\u4EF7", "\u542B\u7A0E\u5355\u4EF7(\u5143)", "\u542B\u7A0E\u5355\u4EF7\uFF08\u5143\uFF09", "\u672A\u7A0E\u5355\u4EF7", "\u672A\u7A0E\u5355\u4EF7(\u5143)", "\u4E0D\u542B\u7A0E\u5355\u4EF7"],
+  materialCode: ["\u7269\u6599\u7F16\u7801", "\u7269\u6599\u4EE3\u7801", "\u7269\u8D44\u7F16\u7801"],
   company: ["\u9700\u6C42\u516C\u53F8", "\u9700\u6C42\u5355\u4F4D", "\u91C7\u8D2D\u516C\u53F8"]
 };
 var headerKey = (v) => String(v ?? "").normalize("NFKC").replace(/[\s*＊]/g, "").toLowerCase();
@@ -73913,7 +73926,7 @@ async function exportBook(rows) {
   const b = new import_exceljs.default.Workbook(), s = b.addWorksheet("\u91C7\u8D2D\u660E\u7EC6");
   const extras = /* @__PURE__ */ new Map();
   for (const r of rows) for (const e of r.sourceExtra || []) extras.set(`${e.col}:${e.header}`, e.header);
-  const columns = [...Object.entries(fields).map(([key, header]) => ({ key, header, width: key === "note" ? 30 : 20 })), { key: "supplier", header: "\u5408\u4F5C\u4F9B\u8D27\u5546", width: 25 }, { key: "contact", header: "\u8054\u7CFB\u65B9\u5F0F", width: 30 }, { key: "basis", header: "\u4EF7\u683C\u6761\u4EF6\u4E0E\u6765\u6E90", width: 55 }, ...Array.from(extras, ([key, header]) => ({ key: "extra:" + key, header, width: 25 }))];
+  const columns = [...Object.entries(fields).filter(([key]) => key !== "materialCode").map(([key, header]) => ({ key, header, width: key === "note" ? 30 : 20 })), { key: "supplier", header: "\u5408\u4F5C\u4F9B\u8D27\u5546", width: 25 }, { key: "contact", header: "\u8054\u7CFB\u65B9\u5F0F", width: 30 }, { key: "basis", header: "\u4EF7\u683C\u6761\u4EF6\u4E0E\u6765\u6E90", width: 55 }, ...Array.from(extras, ([key, header]) => ({ key: "extra:" + key, header, width: 25 }))];
   if (rows.length && rows.every((r) => r.taxBasis === "\u542B\u7A0E")) columns.find((c) => c.key === "price").header = "\u542B\u7A0E\u5355\u4EF7";
   if (rows.length && rows.every((r) => r.taxBasis === "\u672A\u7A0E")) columns.find((c) => c.key === "price").header = "\u672A\u7A0E\u5355\u4EF7";
   s.columns = columns;
@@ -74043,7 +74056,7 @@ var style_default = `.pw{--ink:#223831;--green:#216452;--line:#dbe4df;--paper:#f
 
 // src/useDiskState.jsx
 var import_react = __toESM(require_react(), 1);
-var EMPTY = () => ({ version: 1, data: emptyData(), rows: [] });
+var EMPTY = () => ({ version: 1, data: emptyData(), history: emptyHistory(), rows: [] });
 var queue = Promise.resolve();
 function enqueue(fn) {
   const task = queue.catch(() => {
@@ -74071,8 +74084,8 @@ function useDiskState() {
   const revision = (0, import_react.useRef)(""), baseline = (0, import_react.useRef)(""), failed = (0, import_react.useRef)(false), mounted = (0, import_react.useRef)(true), pending = (0, import_react.useRef)(0), loading = (0, import_react.useRef)(false);
   function accept(value) {
     revision.current = value.revision;
-    const payload2 = { version: 1, data: value.payload.data, rows: latest.current.rows || [] };
-    baseline.current = JSON.stringify({ version: 1, data: payload2.data });
+    const payload2 = { version: 1, data: value.payload.data, history: value.history || emptyHistory(), rows: latest.current.rows || [] };
+    baseline.current = JSON.stringify({ version: 1, data: payload2.data, history: payload2.history });
     setPayload(payload2);
     latest.current = payload2;
     setInfo(value);
@@ -74108,7 +74121,7 @@ function useDiskState() {
   }, []);
   (0, import_react.useEffect)(() => {
     if (!ready || loading.current) return;
-    const serialized = JSON.stringify({ version: 1, data: payload.data });
+    const serialized = JSON.stringify({ version: 1, data: payload.data, history: payload.history });
     if (serialized === baseline.current) {
       if (!pending.current && !failed.current) setStatus(info?.exists ? "\u5DF2\u4FDD\u5B58\u5230\u6587\u4EF6" : "\u5C1A\u65E0\u6570\u636E\uFF0C\u9996\u6B21\u4FEE\u6539\u540E\u5199\u5165\u6587\u4EF6");
       return;
@@ -74120,7 +74133,7 @@ function useDiskState() {
     enqueue(async () => {
       if (failed.current) return;
       try {
-        const value = await request("PUT", { revision: revision.current, payload: { version: 1, data: payload.data } });
+        const value = await request("PUT", { revision: revision.current, payload: { version: 1, data: payload.data }, history: payload.history });
         revision.current = value.revision;
         if (mounted.current) setInfo(value);
       } catch (e) {
@@ -74150,6 +74163,7 @@ function useDiskState() {
     await queue.catch(() => {
     });
     const next = { version: 1, data: latest.current.data };
+    const nextHistory = latest.current.history;
     setStatus("\u6B63\u5728\u4FDD\u5B58");
     pending.current++;
     try {
@@ -74160,10 +74174,10 @@ function useDiskState() {
           if (current.directory !== info?.directory) throw Error("\u8D44\u6599\u76EE\u5F55\u5DF2\u88AB\u5176\u4ED6\u7A97\u53E3\u5207\u6362\uFF0C\u8BF7\u5207\u56DE\u539F\u76EE\u5F55\u540E\u91CD\u8BD5\uFF1B\u5F53\u524D\u4FEE\u6539\u4ECD\u4FDD\u7559\u3002");
           expected = current.revision;
         }
-        const value = await request("PUT", { revision: expected, payload: next });
-        baseline.current = JSON.stringify(next);
-        latest.current = { ...latest.current, data: next.data };
-        setPayload((p) => ({ ...p, data: next.data }));
+        const value = await request("PUT", { revision: expected, payload: next, history: nextHistory });
+        baseline.current = JSON.stringify({ ...next, history: nextHistory });
+        latest.current = { ...latest.current, data: next.data, history: nextHistory };
+        setPayload((p) => ({ ...p, data: next.data, history: nextHistory }));
         revision.current = value.revision;
         setInfo(value);
         failed.current = false;
@@ -74199,7 +74213,7 @@ function useDiskState() {
     setStatus("\u6B63\u5728\u4FDD\u5B58");
     setPayload((p) => ({ ...p, [key]: typeof value === "function" ? value(p[key]) : value }));
   };
-  return { openExcel, bindExcel, excelStatus, data: payload.data, rows: payload.rows, saveCurrent, setData: setter("data"), setRows: (value) => setPayload((p) => ({ ...p, rows: typeof value === "function" ? value(p.rows) : value })), ready, status, error, info, reload, changeDirectory };
+  return { openExcel, bindExcel, excelStatus, data: payload.data, history: payload.history, rows: payload.rows, saveCurrent, setData: setter("data"), setHistory: setter("history"), setRows: (value) => setPayload((p) => ({ ...p, rows: typeof value === "function" ? value(p.rows) : value })), ready, status, error, info, reload, changeDirectory };
 }
 
 // src/App.jsx
@@ -74326,16 +74340,17 @@ function App() {
     const f = e.target.files[0];
     if (!f) return;
     const x = JSON.parse(await f.text());
-    validateData(x.data);
+    const cleanData = withoutLegacyPrices(x.data);
+    validateData(cleanData);
     if (!confirm("\u6062\u590D\u5907\u4EFD\u5C06\u66FF\u6362\u53C2\u8003\u8D44\u6599\uFF0C\u662F\u5426\u7EE7\u7EED\uFF1F")) return;
-    setData(x.data);
+    setData(cleanData);
     resetSelection();
-    setMessage("\u5907\u4EFD\u5DF2\u6062\u590D\u3002");
+    setMessage("\u5907\u4EFD\u5DF2\u6062\u590D\uFF0C\u65E7\u4EF7\u683C\u8D44\u6599\u5DF2\u79FB\u9664\u3002");
   }) })))), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-storage-status" }, /* @__PURE__ */ import_react2.default.createElement("span", null, disk.excelStatus), /* @__PURE__ */ import_react2.default.createElement("span", null, disk.status), disk.info && /* @__PURE__ */ import_react2.default.createElement("span", null, "\u76EE\u5F55\uFF1A", disk.info.directory)), disk.error && /* @__PURE__ */ import_react2.default.createElement("div", { role: "alert", className: "pw-message" }, disk.error, disk.ready && /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: busy, onClick: () => act(() => disk.saveCurrent()) }, "\u91CD\u8BD5\u4FDD\u5B58"), disk.error.includes("\u5176\u4ED6\u7A97\u53E3") && /* @__PURE__ */ import_react2.default.createElement("button", { disabled: busy, onClick: () => {
     if (confirm("\u5C06\u7528\u5F53\u524D\u9875\u9762\u7684\u5168\u90E8\u8D44\u6599\u8986\u76D6\u6587\u4EF6\u4E2D\u7684\u6700\u65B0\u5185\u5BB9\uFF0C\u5176\u4ED6\u7A97\u53E3\u7684\u4FEE\u6539\u53EF\u80FD\u4E22\u5931\u3002\u786E\u8BA4\u4FDD\u5B58\uFF1F")) act(() => disk.saveCurrent(true));
   } }, "\u7528\u5F53\u524D\u5185\u5BB9\u4FDD\u5B58")), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
     if (!disk.ready || confirm("\u91CD\u65B0\u8F7D\u5165\u4F1A\u653E\u5F03\u5F53\u524D\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u901A\u5E38\u53EF\u76F4\u63A5\u91CD\u8BD5\u4FDD\u5B58\uFF0C\u65E0\u9700\u91CD\u65B0\u8F7D\u5165\u3002\u786E\u5B9A\u653E\u5F03\u4FEE\u6539\uFF1F")) disk.reload();
-  } }, "\u91CD\u65B0\u8F7D\u5165")), settings && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u3001\u516C\u53F8\u7701\u4EFD\u4E0E\u8BE2\u4EF7\u6807\u8BB0\u7EDF\u4E00\u4FDD\u5B58\u3002\u91C7\u8D2D\u8868\u53EA\u8BFB\u663E\u793A\uFF1B\u4F9B\u8D27\u5546\u7B49\u53C2\u8003\u8D44\u6599\u81EA\u52A8\u5199\u5165\u5F53\u524D\u6587\u4EF6\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u76EE\u5F55\u8DEF\u5F84", /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55", value: directory, onChange: (e) => setDirectory(e.target.value), placeholder: "/Users/double/buyer/data/" })), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, disk.info?.file && `\u5F53\u524D\u6587\u4EF6\uFF1A${disk.info.file}`), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
+  } }, "\u91CD\u65B0\u8F7D\u5165")), settings && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u3001\u516C\u53F8\u7701\u4EFD\u4E0E\u8BE2\u4EF7\u6807\u8BB0\u7EDF\u4E00\u4FDD\u5B58\uFF1Bhistory.json \u5355\u72EC\u4FDD\u5B58\u6709\u5386\u53F2\u6210\u4EA4\u4EF7\u7684\u7269\u6599\u7F16\u7801\u3002\u91C7\u8D2D\u8868\u53EA\u8BFB\u663E\u793A\uFF1B\u4F9B\u8D27\u5546\u7B49\u53C2\u8003\u8D44\u6599\u81EA\u52A8\u5199\u5165\u5F53\u524D\u6587\u4EF6\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u76EE\u5F55\u8DEF\u5F84", /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55", value: directory, onChange: (e) => setDirectory(e.target.value), placeholder: "/Users/double/buyer/data/" })), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, disk.info?.file && `\u5F53\u524D\u6587\u4EF6\uFF1A${disk.info.file}`), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
     await disk.changeDirectory(directory, "copy");
     resetSelection();
     setMessage("\u5DF2\u590D\u5236\u8D44\u6599\u5E76\u5207\u6362\u76EE\u5F55\u3002\u539F\u76EE\u5F55\u6587\u4EF6\u4FDD\u7559\uFF0C\u540E\u7EED\u53EA\u66F4\u65B0\u65B0\u76EE\u5F55\u3002");
@@ -74368,7 +74383,7 @@ function App() {
   } }, "\u6807\u4E3A\u672A\u8BE2\u4EF7"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
     resetSelection();
     setContextMenu(null);
-  } }, "\u53D6\u6D88\u5168\u9009")), book && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u786E\u8BA4\u8868\u5934\u4E0E\u5217\u5BF9\u5E94\u5173\u7CFB"), /* @__PURE__ */ import_react2.default.createElement("p", null, fileName, " \xB7 \u5BFC\u5165\u5C06\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u5BFC\u5165\u660E\u7EC6\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\uFF1B\u4F9B\u8D27\u5546\u8D44\u6599\u4F1A\u4FDD\u7559\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u5DE5\u4F5C\u8868", /* @__PURE__ */ import_react2.default.createElement("select", { value: sheet, onChange: (e) => {
+  } }, "\u53D6\u6D88\u5168\u9009")), book && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u786E\u8BA4\u8868\u5934\u4E0E\u5217\u5BF9\u5E94\u5173\u7CFB"), /* @__PURE__ */ import_react2.default.createElement("p", null, fileName, " \xB7 \u5BFC\u5165\u5C06\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u5BFC\u5165\u660E\u7EC6\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\uFF1B\u4F9B\u8D27\u5546\u8D44\u6599\u4F1A\u4FDD\u7559\u3002\u7269\u6599\u7F16\u7801\u4EC5\u7528\u4E8E\u5339\u914D history.json \u4E2D\u7684\u5386\u53F2\u6210\u4EA4\u4EF7\uFF0C\u4E0D\u5728\u660E\u7EC6\u8868\u663E\u793A\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u5DE5\u4F5C\u8868", /* @__PURE__ */ import_react2.default.createElement("select", { value: sheet, onChange: (e) => {
     setSheet(e.target.value);
     const found = detectHeader(book.getWorksheet(e.target.value));
     setHeader(found.headerRow);
@@ -74380,7 +74395,8 @@ function App() {
   } })), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(fields).filter(([k]) => k !== "price").map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement("select", { "aria-label": `${l}\u5BF9\u5E94\u5217`, value: mapping[k] || "", onChange: (e) => setMapping({ ...mapping, [k]: e.target.value }) }, /* @__PURE__ */ import_react2.default.createElement("option", { value: "" }, "\u4E0D\u5BFC\u5165"), Array.from({ length: Math.min(book.getWorksheet(sheet).columnCount, 100) }, (_, i) => /* @__PURE__ */ import_react2.default.createElement("option", { key: i, value: i + 1 }, i + 1, " \xB7 ", book.getWorksheet(sheet).getRow(header).getCell(i + 1).text || "\u7A7A\u8868\u5934")))))), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", onClick: () => act(() => {
     if (!mapping.brand || !mapping.model || !mapping.quantity) throw Error("\u8BF7\u81F3\u5C11\u5BF9\u5E94\u54C1\u724C\u3001\u578B\u53F7\u3001\u6570\u91CF\u5217");
     if (new Set(Object.values(mapping).filter(Boolean).map(String)).size !== Object.values(mapping).filter(Boolean).length) throw Error("\u4E0D\u540C\u5B57\u6BB5\u4E0D\u80FD\u4F7F\u7528\u540C\u4E00\u5217");
-    const next = sheetRows(book.getWorksheet(sheet), header, mapping).map((r) => ({ ...r, sourceFile: fileName }));
+    const next = sheetRows(book.getWorksheet(sheet), header, mapping).map((r) => ({ ...r, sourceFile: fileName, hasHistoryPrice: hasHistoryPrice(r, disk.history) }));
+    const historyCount = next.filter((r) => r.hasHistoryPrice).length;
     if (next.length > 1e4) throw Error("\u660E\u7EC6\u8D85\u8FC7 10000 \u884C\uFF0C\u8BF7\u62C6\u5206\u5BFC\u5165");
     if (rows.length && !confirm("\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\u5E76\u66FF\u6362\u5F53\u524D\u660E\u7EC6\uFF1F\u5BFC\u5165\u7684\u660E\u7EC6\u5C06\u5168\u90E8\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\u3002")) return;
     changeData("inquiryMarks", updateInquiryMarks(data.inquiryMarks, next, false));
@@ -74390,7 +74406,7 @@ function App() {
     setNotesExpanded(false);
     resetSelection();
     setBook(null);
-    setMessage(`\u5DF2\u5BFC\u5165 ${next.length} \u884C\uFF0C\u5DF2\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u4E3A\u672A\u8BE2\u4EF7\u3002`);
+    setMessage(`\u5DF2\u5BFC\u5165 ${next.length} \u884C\uFF0C\u5DF2\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u4E3A\u672A\u8BE2\u4EF7\uFF1B\u5339\u914D\u5230 ${historyCount} \u4E2A\u6709\u5386\u53F2\u6210\u4EA4\u4EF7\u7684\u7269\u6599\u7F16\u7801\u3002`);
   }) }, "\u786E\u8BA4\u5BFC\u5165"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setBook(null) }, "\u53D6\u6D88")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-summary" }, /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.length), " \u884C\u9700\u6C42"), /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.filter((r) => suppliersFor(r, data.suppliers).length).length), " \u884C\u6709\u5408\u4F5C\u4F9B\u8D27\u5546"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u8BE2\u4EF7 ", doneIds.size, " \u884C \xB7 \u672A\u8BE2\u4EF7 ", rows.length - doneIds.size, " \u884C"), /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-summary-reminder" }, generalNotes.length > 0 && /* @__PURE__ */ import_react2.default.createElement("button", { className: "pw-reminder-trigger", "aria-expanded": notesExpanded, onClick: () => setNotesExpanded(!notesExpanded) }, "\u26A0 \u901A\u7528\u63D0\u9192 ", /* @__PURE__ */ import_react2.default.createElement("b", null, generalNotes.length))), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u9009 ", chosen.length, " \u884C")), /* @__PURE__ */ import_react2.default.createElement("div", { className: `pw-reminder-panel ${notesExpanded ? "is-open" : ""}`, "aria-label": "\u901A\u7528\u6CE8\u610F\u4E8B\u9879" }, generalNotes.length ? (notesExpanded ? generalNotes : generalNotes.slice(0, 1)).map((note, i) => /* @__PURE__ */ import_react2.default.createElement("p", { key: i }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-note-number" }, i + 1), /* @__PURE__ */ import_react2.default.createElement("span", null, note))) : null, generalNotes.length > 1 && /* @__PURE__ */ import_react2.default.createElement("button", { className: "pw-reminder-more", onClick: () => setNotesExpanded(!notesExpanded) }, notesExpanded ? "\u6536\u8D77" : `\u5C55\u5F00\u5168\u90E8\uFF08${generalNotes.length} \u6761\uFF09`)), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-grid" }, /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-sheet" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-table-scroll" }, /* @__PURE__ */ import_react2.default.createElement("table", null, /* @__PURE__ */ import_react2.default.createElement("thead", null, /* @__PURE__ */ import_react2.default.createElement("tr", null, /* @__PURE__ */ import_react2.default.createElement("th", null, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u9009\u62E9\u5F53\u524D\u7B5B\u9009\u7684\u5168\u90E8\u884C", type: "checkbox", checked: !!shown.length && shown.every((r) => selected.includes(r.id)), onChange: (e) => {
     setSelected(e.target.checked ? [.../* @__PURE__ */ new Set([...selected, ...shown.map((r) => r.id)])] : selected.filter((id) => !shown.some((r) => r.id === id)));
     setManual("");
