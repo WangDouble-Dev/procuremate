@@ -47404,7 +47404,7 @@ function safeUrl(value) {
     return null;
   }
 }
-var emptyData = () => ({ suppliers: [], channels: [], rules: [], companies: [], inquiryMarks: [] });
+var emptyData = () => ({ suppliers: [], channels: [], rules: [], companies: [] });
 var emptyHistory = () => [];
 function historyMaterialCodes(history) {
   return new Set((Array.isArray(history) ? history : []).map((item) => normalize(item)).filter(Boolean));
@@ -47413,14 +47413,8 @@ function hasHistoryPrice(row, history) {
   const code = normalize(row?.materialCode);
   return !!code && historyMaterialCodes(history).has(code);
 }
-function withoutLegacyPrices(d) {
-  if (!d || typeof d !== "object") return d;
-  const { prices, ...rest } = d;
-  return rest;
-}
 function validateData(d) {
   if (!d || typeof d !== "object") throw Error("\u8D44\u6599\u5FC5\u987B\u662F\u5BF9\u8C61");
-  if (d.inquiryMarks !== void 0 && (!Array.isArray(d.inquiryMarks) || d.inquiryMarks.some((k) => typeof k !== "string" || !k))) throw Error("\u8BE2\u4EF7\u6807\u8BB0\u5FC5\u987B\u662F\u6709\u6548\u8BB0\u5F55\u5217\u8868");
   for (const key of ["suppliers", "channels", "rules"]) if (!Array.isArray(d[key]) || d[key].some((x) => !x || typeof x !== "object" || Array.isArray(x))) throw Error(`${key} \u5FC5\u987B\u662F\u8BB0\u5F55\u5217\u8868`);
   for (const key of ["suppliers", "channels", "rules"]) for (const record of d[key]) for (const [field, value] of Object.entries(record)) if (value !== null && !["string", "number", "boolean"].includes(typeof value)) throw Error(`${key}.${field} \u5FC5\u987B\u662F\u6587\u672C\u3001\u6570\u5B57\u6216\u5E03\u5C14\u503C`);
   if (d.companies !== void 0) {
@@ -47461,7 +47455,7 @@ function rowReminders(row, data) {
 function inquiryRowKey(row) {
   return JSON.stringify([row.sourceFile || "", row.sourceSheet || "", row.sourceRow ?? row.id, ...Object.keys(fields).map((k) => String(row[k] ?? "")), row.sourceExtra || []]);
 }
-function updateInquiryMarks(marks, rows, done) {
+function updateInquiryState(marks, rows, done) {
   const next = new Set(marks || []);
   for (const row of rows) {
     const key = inquiryRowKey(row);
@@ -74240,6 +74234,7 @@ function App() {
   const [selected, setSelected] = (0, import_react2.useState)([]);
   const [filter, setFilter] = (0, import_react2.useState)("");
   const [inquiryFilter, setInquiryFilter] = (0, import_react2.useState)("all");
+  const [inquiryState, setInquiryState] = (0, import_react2.useState)([]);
   const [book, setBook] = (0, import_react2.useState)(null);
   const [sheet, setSheet] = (0, import_react2.useState)("");
   const [header, setHeader] = (0, import_react2.useState)(1);
@@ -74255,9 +74250,9 @@ function App() {
   const [notesExpanded, setNotesExpanded] = (0, import_react2.useState)(false);
   const [contextMenu, setContextMenu] = (0, import_react2.useState)(null);
   const doneIds = (0, import_react2.useMemo)(() => {
-    const marked = new Set(data.inquiryMarks || []);
+    const marked = new Set(inquiryState);
     return new Set(rows.filter((r) => marked.has(inquiryRowKey(r))).map((r) => r.id));
-  }, [rows, data.inquiryMarks]);
+  }, [rows, inquiryState]);
   const chosen = rows.filter((r) => selected.includes(r.id));
   const shown = (0, import_react2.useMemo)(() => rows.filter((r) => matchesPurchase(r, filter, data.suppliers) && (inquiryFilter === "all" || doneIds.has(r.id) === (inquiryFilter === "done"))), [rows, filter, data.suppliers, doneIds, inquiryFilter]);
   const destination = destinationFor(chosen, data.companies);
@@ -74289,8 +74284,8 @@ function App() {
     return [note.brand && `\u54C1\u724C\uFF1A${note.brand}`, note.keyword && `\u54C1\u540D\uFF1A${note.keyword}`, note.message].filter(Boolean).join("\uFF1B");
   }
   function markInquiry(target, done) {
-    changeData("inquiryMarks", updateInquiryMarks(data.inquiryMarks, target, done));
-    setMessage(`\u5DF2\u5C06 ${target.length} \u884C\u6807\u8BB0\u4E3A${done ? "\u5DF2\u8BE2\u4EF7" : "\u672A\u8BE2\u4EF7"}\uFF0C\u8BF7\u4EE5\u9876\u90E8\u6587\u4EF6\u4FDD\u5B58\u72B6\u6001\u4E3A\u51C6\u3002`);
+    setInquiryState((state) => updateInquiryState(state, target, done));
+    setMessage(`\u5DF2\u5C06 ${target.length} \u884C\u6807\u8BB0\u4E3A${done ? "\u5DF2\u8BE2\u4EF7" : "\u672A\u8BE2\u4EF7"}\uFF1B\u5F53\u524D\u4EC5\u4FDD\u5B58\u5728\u672C\u6B21\u5DE5\u4F5C\u53F0\u4F1A\u8BDD\u3002`);
     resetSelection();
   }
   function serialOf(row, index) {
@@ -74343,17 +74338,17 @@ function App() {
     const f = e.target.files[0];
     if (!f) return;
     const x = JSON.parse(await f.text());
-    const cleanData = withoutLegacyPrices(x.data);
-    validateData(cleanData);
+    validateData(x.data);
     if (!confirm("\u6062\u590D\u5907\u4EFD\u5C06\u66FF\u6362\u53C2\u8003\u8D44\u6599\uFF0C\u662F\u5426\u7EE7\u7EED\uFF1F")) return;
-    setData(cleanData);
+    setData(x.data);
+    setInquiryState([]);
     resetSelection();
-    setMessage("\u5907\u4EFD\u5DF2\u6062\u590D\uFF0C\u65E7\u4EF7\u683C\u8D44\u6599\u5DF2\u79FB\u9664\u3002");
+    setMessage("\u5907\u4EFD\u5DF2\u6062\u590D\u3002");
   }) })))), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-storage-status" }, /* @__PURE__ */ import_react2.default.createElement("span", null, disk.excelStatus), /* @__PURE__ */ import_react2.default.createElement("span", null, disk.status), disk.info && /* @__PURE__ */ import_react2.default.createElement("span", null, "\u76EE\u5F55\uFF1A", disk.info.directory)), disk.error && /* @__PURE__ */ import_react2.default.createElement("div", { role: "alert", className: "pw-message" }, disk.error, disk.ready && /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: busy, onClick: () => act(() => disk.saveCurrent()) }, "\u91CD\u8BD5\u4FDD\u5B58"), disk.error.includes("\u5176\u4ED6\u7A97\u53E3") && /* @__PURE__ */ import_react2.default.createElement("button", { disabled: busy, onClick: () => {
     if (confirm("\u5C06\u7528\u5F53\u524D\u9875\u9762\u7684\u5168\u90E8\u8D44\u6599\u8986\u76D6\u6587\u4EF6\u4E2D\u7684\u6700\u65B0\u5185\u5BB9\uFF0C\u5176\u4ED6\u7A97\u53E3\u7684\u4FEE\u6539\u53EF\u80FD\u4E22\u5931\u3002\u786E\u8BA4\u4FDD\u5B58\uFF1F")) act(() => disk.saveCurrent(true));
   } }, "\u7528\u5F53\u524D\u5185\u5BB9\u4FDD\u5B58")), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
     if (!disk.ready || confirm("\u91CD\u65B0\u8F7D\u5165\u4F1A\u653E\u5F03\u5F53\u524D\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u901A\u5E38\u53EF\u76F4\u63A5\u91CD\u8BD5\u4FDD\u5B58\uFF0C\u65E0\u9700\u91CD\u65B0\u8F7D\u5165\u3002\u786E\u5B9A\u653E\u5F03\u4FEE\u6539\uFF1F")) disk.reload();
-  } }, "\u91CD\u65B0\u8F7D\u5165")), settings && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u3001\u516C\u53F8\u7701\u4EFD\u4E0E\u8BE2\u4EF7\u6807\u8BB0\u7EDF\u4E00\u4FDD\u5B58\uFF1Bhistory.json \u5355\u72EC\u4FDD\u5B58\u6709\u5386\u53F2\u6210\u4EA4\u4EF7\u7684\u7269\u6599\u7F16\u7801\u3002\u91C7\u8D2D\u8868\u53EA\u8BFB\u663E\u793A\uFF1B\u4F9B\u8D27\u5546\u7B49\u53C2\u8003\u8D44\u6599\u81EA\u52A8\u5199\u5165\u5F53\u524D\u6587\u4EF6\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u76EE\u5F55\u8DEF\u5F84", /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55", value: directory, onChange: (e) => setDirectory(e.target.value), placeholder: "/Users/double/buyer/data/" })), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, disk.info?.file && `\u5F53\u524D\u6587\u4EF6\uFF1A${disk.info.file}`), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
+  } }, "\u91CD\u65B0\u8F7D\u5165")), settings && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4EC5\u4FDD\u5B58\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u548C\u516C\u53F8\u7701\u4EFD\uFF1B\u8BE2\u4EF7\u72B6\u6001\u53EA\u5728\u5F53\u524D\u5DE5\u4F5C\u53F0\u4F1A\u8BDD\u4E2D\u4FDD\u7559\uFF0Chistory.json \u5355\u72EC\u4FDD\u5B58\u6709\u5386\u53F2\u6210\u4EA4\u4EF7\u7684\u7269\u6599\u7F16\u7801\u3002\u91C7\u8D2D\u8868\u53EA\u8BFB\u663E\u793A\uFF1B\u4F9B\u8D27\u5546\u7B49\u53C2\u8003\u8D44\u6599\u81EA\u52A8\u5199\u5165\u5F53\u524D\u6587\u4EF6\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u76EE\u5F55\u8DEF\u5F84", /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55", value: directory, onChange: (e) => setDirectory(e.target.value), placeholder: "/Users/double/buyer/data/" })), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, disk.info?.file && `\u5F53\u524D\u6587\u4EF6\uFF1A${disk.info.file}`), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
     await disk.changeDirectory(directory, "copy");
     resetSelection();
     setMessage("\u5DF2\u590D\u5236\u8D44\u6599\u5E76\u5207\u6362\u76EE\u5F55\u3002\u539F\u76EE\u5F55\u6587\u4EF6\u4FDD\u7559\uFF0C\u540E\u7EED\u53EA\u66F4\u65B0\u65B0\u76EE\u5F55\u3002");
@@ -74402,7 +74397,7 @@ function App() {
     const historyCount = next.filter((r) => r.hasHistoryPrice).length;
     if (next.length > 1e4) throw Error("\u660E\u7EC6\u8D85\u8FC7 10000 \u884C\uFF0C\u8BF7\u62C6\u5206\u5BFC\u5165");
     if (rows.length && !confirm("\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\u5E76\u66FF\u6362\u5F53\u524D\u660E\u7EC6\uFF1F\u5BFC\u5165\u7684\u660E\u7EC6\u5C06\u5168\u90E8\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\u3002")) return;
-    changeData("inquiryMarks", updateInquiryMarks(data.inquiryMarks, next, false));
+    setInquiryState([]);
     disk.bindExcel(sourceExcel);
     setRows(next);
     setInquiryFilter("all");
@@ -74459,7 +74454,7 @@ function App() {
       setEdit(null);
       setForm({});
     }
-  } }, "\u5220\u9664"))), !catalogResults.length && /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-empty" }, catalogQuery ? "\u6CA1\u6709\u5339\u914D\u7ED3\u679C\uFF0C\u8BF7\u8C03\u6574\u641C\u7D22\u8BCD\u3002" : "\u5C1A\u65E0\u8D44\u6599\uFF0C\u53EF\u65B0\u589E\u6216\u5BFC\u5165\u3002")))), /* @__PURE__ */ import_react2.default.createElement("footer", null, "\u91C7\u8D2D\u8868\u53EA\u8BFB\uFF0C\u4E0D\u4FEE\u6539\u539F\u6587\u4EF6\uFF1B\u53C2\u8003\u8D44\u6599\u4E0E\u8BE2\u4EF7\u6807\u8BB0\u5199\u5165\u6240\u9009\u76EE\u5F55\u7684 procurement-workbench.json\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002\u6574\u7406\u7248\u4FDD\u7559\u6620\u5C04\u5B57\u6BB5\u53CA\u6709\u8868\u5934\u7684\u5176\u4ED6\u539F\u59CB\u5217\uFF0C\u4E0D\u4FDD\u7559\u539F\u8868\u6837\u5F0F\u3001\u516C\u5F0F\u548C\u5176\u4ED6\u5DE5\u4F5C\u8868\u3002"));
+  } }, "\u5220\u9664"))), !catalogResults.length && /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-empty" }, catalogQuery ? "\u6CA1\u6709\u5339\u914D\u7ED3\u679C\uFF0C\u8BF7\u8C03\u6574\u641C\u7D22\u8BCD\u3002" : "\u5C1A\u65E0\u8D44\u6599\uFF0C\u53EF\u65B0\u589E\u6216\u5BFC\u5165\u3002")))), /* @__PURE__ */ import_react2.default.createElement("footer", null, "\u91C7\u8D2D\u8868\u53EA\u8BFB\uFF0C\u4E0D\u4FEE\u6539\u539F\u6587\u4EF6\uFF1B\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u4E0E\u516C\u53F8\u7701\u4EFD\u5199\u5165\u6240\u9009\u76EE\u5F55\u7684 procurement-workbench.json\uFF0C\u8BE2\u4EF7\u72B6\u6001\u4EC5\u4FDD\u7559\u5728\u5F53\u524D\u4F1A\u8BDD\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002\u6574\u7406\u7248\u4FDD\u7559\u6620\u5C04\u5B57\u6BB5\u53CA\u6709\u8868\u5934\u7684\u5176\u4ED6\u539F\u59CB\u5217\uFF0C\u4E0D\u4FDD\u7559\u539F\u8868\u6837\u5F0F\u3001\u516C\u5F0F\u548C\u5176\u4ED6\u5DE5\u4F5C\u8868\u3002"));
 }
 
 // src/preview.jsx

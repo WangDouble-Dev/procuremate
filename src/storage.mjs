@@ -3,7 +3,7 @@ import {readFile,mkdir,open,rename,unlink} from 'node:fs/promises';
 import {join,dirname,isAbsolute,normalize} from 'node:path';
 import {homedir} from 'node:os';
 import {randomUUID,createHash} from 'node:crypto';
-import {emptyData,emptyHistory,validateData,withoutLegacyPrices} from './core.mjs';
+import {emptyData,emptyHistory,validateData} from './core.mjs';
 
 export const DATA_FILE='procurement-workbench.json';
 export const HISTORY_FILE='history.json';
@@ -14,7 +14,7 @@ export const blankHistory=()=>emptyHistory();
 function fail(message,status=400){return Object.assign(new Error(message),{status});}
 export function validatePayload(p){
  if(!p||p.version!==1)throw fail('数据文件格式不正确：缺少资料或采购明细。');
- const data=withoutLegacyPrices(p.data);validateData(data);
+ const data=p.data;validateData(data);
 
  if(JSON.stringify(p).length>20*1024*1024)throw fail('资料超过 20 MB，请先精简资料。',413);
  return {version:1,data};
@@ -38,7 +38,12 @@ async function readOptional(path){try{return await readFile(path,'utf8');}catch(
 async function atomicWrite(path,value){
  await mkdir(dirname(path),{recursive:true,mode:0o700});
  const temp=path+'.tmp-'+randomUUID();let handle;
- try{handle=await open(temp,'wx',0o600);await handle.writeFile(JSON.stringify(value,null,2)+'\n','utf8');await handle.sync();await handle.close();handle=null;await rename(temp,path);}finally{if(handle)await handle.close().catch(()=>{});await unlink(temp).catch(()=>{});}
+ try{handle=await open(temp,'wx',0o600);await handle.writeFile(JSON.stringify(value,null,2)+'\n','utf8');await handle.sync();await handle.close();handle=null;
+  let lastError;
+  for(let attempt=0;attempt<6;attempt++){
+   try{await rename(temp,path);break;}catch(error){if(process.platform!=='win32'||!['EPERM','EEXIST','ENOTEMPTY'].includes(error.code))throw error;try{await unlink(path);}catch(removeError){if(removeError.code!=='ENOENT'&&attempt===5)throw removeError;}if(attempt===5){await rename(temp,path);break;}await new Promise(resolve=>setTimeout(resolve,50*(attempt+1)));}
+  }
+ }finally{if(handle)await handle.close().catch(()=>{});await unlink(temp).catch(()=>{});}
 }
 function revision(directory,raw,historyRaw){return createHash('sha256').update(directory+'\0'+(raw??'<missing>')+'\0'+(historyRaw??'<missing>')).digest('hex');}
 export function createStorage({configPath=defaultConfigPath(),dataDir=defaultDirectory()}={}){
@@ -73,7 +78,7 @@ async function snapshot(directory){
  function expectRevision(current,expected){if(current.revision!==expected)throw fail('资料已被其他窗口修改，或保存目录已经改变。当前修改尚未保存，请先导出当前资料，再重新载入。',409);}
  return {
   read:()=>withLock(async()=>snapshot(await activeDirectory())),
-  save:(payload,expected,history)=>withLock(async()=>{payload=validatePayload(payload);const current=await snapshot(await activeDirectory());expectRevision(current,expected);const nextHistory=history===undefined?current.history:validateHistory(history);await atomicWrite(current.file,payload);await atomicWrite(current.historyFile,nextHistory);return snapshot(current.directory);}),
+  save:(payload,expected,history)=>withLock(async()=>{payload=validatePayload(payload);const current=await snapshot(await activeDirectory());expectRevision(current,expected);const nextHistory=history===undefined?current.history:validateHistory(history);await atomicWrite(current.file,payload);if(JSON.stringify(nextHistory)!==JSON.stringify(current.history))await atomicWrite(current.historyFile,nextHistory);return snapshot(current.directory);}),
   changeDirectory:(requested,mode,expected)=>withLock(async()=>{
    if(!['copy','open'].includes(mode))throw fail('请选择复制当前资料或使用目标目录资料。');
    const directory=directoryPath(requested),current=await snapshot(await activeDirectory());expectRevision(current,expected);
