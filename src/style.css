@@ -17,3 +17,5 @@
 .pw-history-badge{display:inline-flex;align-items:center;justify-content:center;margin:2px 5px 2px 4px;padding:1px 5px;border:1px solid #8eb5d1;border-radius:999px;background:#eaf4fb;color:#246487;font:11px/1.4 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;white-space:nowrap;cursor:help}
 .pw-history-badge{display:flex;width:max-content;margin-left:0}
 .pw-note-icon{display:inline-flex;width:21px;height:21px;flex:none;margin-left:0}
+.pw-history-manager>textarea{width:min(720px,100%);display:block;margin:14px 0;line-height:1.7;resize:vertical}.pw-history-codes{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;max-height:45vh;overflow:auto;padding:12px;background:var(--paper);border-radius:7px}.pw-history-codes span{padding:4px 8px;background:#fff;border:1px solid var(--line);border-radius:5px;font:12px ui-monospace,monospace}
+.pw-history-search{display:block;max-width:720px;margin:18px 0 8px}.pw-history-search input{width:100%;margin-top:5px}.pw-history-code{display:flex;align-items:center;gap:10px;padding:4px 0}.pw-history-code span{flex:1}.pw-history-code button{min-height:28px;padding:3px 9px;font-size:12px}
