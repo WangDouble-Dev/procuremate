@@ -1101,7 +1101,7 @@ var require_react_development = __commonJS({
           var dispatcher = resolveDispatcher();
           return dispatcher.useRef(initialValue);
         }
-        function useEffect3(create, deps) {
+        function useEffect2(create, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useEffect(create, deps);
         }
@@ -1884,7 +1884,7 @@ var require_react_development = __commonJS({
         exports.useContext = useContext;
         exports.useDebugValue = useDebugValue;
         exports.useDeferredValue = useDeferredValue;
-        exports.useEffect = useEffect3;
+        exports.useEffect = useEffect2;
         exports.useId = useId;
         exports.useImperativeHandle = useImperativeHandle;
         exports.useInsertionEffect = useInsertionEffect;
@@ -74232,8 +74232,25 @@ function download(body, name, type = "application/json") {
   a.click();
   setTimeout(() => URL.revokeObjectURL(u), 1e3);
 }
-var labels = { suppliers: "\u4F9B\u8D27\u5546", rules: "\u6CE8\u610F\u4E8B\u9879", companies: "\u516C\u53F8\u7701\u4EFD" };
-var schemas = { companies: { company: "\u9700\u6C42\u516C\u53F8", province: "\u53D1\u5F80\u7701\u4EFD" }, suppliers: { brand: "\u54C1\u724C", aliases: "\u54C1\u724C\u522B\u540D\uFF08\u7528 | \u5206\u9694\uFF09", name: "\u4F9B\u8D27\u5546\u540D\u79F0", contact: "\u8054\u7CFB\u4EBA", wechat: "\u5FAE\u4FE1", phone: "\u7535\u8BDD", url: "\u5E97\u94FA\u7F51\u5740", note: "\u5907\u6CE8" }, rules: { brand: "\u54C1\u724C\uFF08\u7A7A\u767D\u4E3A\u5168\u90E8\uFF09", keyword: "\u54C1\u540D", message: "\u63D0\u9192\u5185\u5BB9" } };
+var labels = {
+  suppliers: "\u4F9B\u8D27\u5546",
+  rules: "\u6CE8\u610F\u4E8B\u9879",
+  companies: "\u516C\u53F8\u7701\u4EFD"
+};
+var schemas = {
+  companies: { company: "\u9700\u6C42\u516C\u53F8", province: "\u53D1\u5F80\u7701\u4EFD" },
+  suppliers: {
+    brand: "\u54C1\u724C",
+    aliases: "\u54C1\u724C\u522B\u540D\uFF08\u7528 | \u5206\u9694\uFF09",
+    name: "\u4F9B\u8D27\u5546\u540D\u79F0",
+    contact: "\u8054\u7CFB\u4EBA",
+    wechat: "\u5FAE\u4FE1",
+    phone: "\u7535\u8BDD",
+    url: "\u5E97\u94FA\u7F51\u5740",
+    note: "\u5907\u6CE8"
+  },
+  rules: { brand: "\u54C1\u724C\uFF08\u7A7A\u767D\u4E3A\u5168\u90E8\uFF09", keyword: "\u54C1\u540D", message: "\u63D0\u9192\u5185\u5BB9" }
+};
 function App() {
   const disk = useDiskState();
   const { data, rows, setData, setRows, setHistory } = disk;
@@ -74263,15 +74280,30 @@ function App() {
   const [contextMenu, setContextMenu] = (0, import_react2.useState)(null);
   const doneIds = (0, import_react2.useMemo)(() => {
     const marked = new Set(inquiryState);
-    return new Set(rows.filter((r) => marked.has(inquiryRowKey(r))).map((r) => r.id));
+    return new Set(
+      rows.filter((r) => marked.has(inquiryRowKey(r))).map((r) => r.id)
+    );
   }, [rows, inquiryState]);
   const chosen = rows.filter((r) => selected.includes(r.id));
-  const shown = (0, import_react2.useMemo)(() => rows.filter((r) => matchesPurchase(r, filter, data.suppliers) && (inquiryFilter === "all" || doneIds.has(r.id) === (inquiryFilter === "done"))), [rows, filter, data.suppliers, doneIds, inquiryFilter]);
+  const shown = (0, import_react2.useMemo)(
+    () => rows.filter(
+      (r) => matchesPurchase(r, filter, data.suppliers) && (inquiryFilter === "all" || doneIds.has(r.id) === (inquiryFilter === "done"))
+    ),
+    [rows, filter, data.suppliers, doneIds, inquiryFilter]
+  );
   const destination = destinationFor(chosen, data.companies);
   const text = manual || inquiry(chosen, data.companies);
-  const alerts = (0, import_react2.useMemo)(() => data.rules.filter((rule) => !rule.brand && !String(rule.keyword || "").trim() && rows.some((r) => reminders(r, { ...data, rules: [rule] }).length)).map((rule) => rule.message), [rows, data]);
+  const alerts = (0, import_react2.useMemo)(
+    () => data.rules.filter(
+      (rule) => !rule.brand && !String(rule.keyword || "").trim() && rows.some((r) => reminders(r, { ...data, rules: [rule] }).length)
+    ).map((rule) => rule.message),
+    [rows, data]
+  );
   const generalNotes = [...new Set(alerts)];
-  const catalogResults = (0, import_react2.useMemo)(() => (data[tab] || []).map((r, i) => ({ r, i })).filter(({ r }) => matchesReference(r, catalogQuery, data.suppliers)), [data[tab], catalogQuery, data.suppliers]);
+  const catalogResults = (0, import_react2.useMemo)(
+    () => (data[tab] || []).map((r, i) => ({ r, i })).filter(({ r }) => matchesReference(r, catalogQuery, data.suppliers)),
+    [data[tab], catalogQuery, data.suppliers]
+  );
   const act = async (fn) => {
     setBusy(true);
     try {
@@ -74289,43 +74321,70 @@ function App() {
     if (key === "companies") setManual("");
   }
   function addHistoryCodes() {
-    const codes = [...new Set(historyInput.split(/[\s,，、;；]+/).map((v) => v.normalize("NFKC").trim()).filter(Boolean))];
-    if (!codes.length) throw Error("\u8BF7\u5148\u8F93\u5165\u7269\u6599\u7F16\u7801\uFF0C\u652F\u6301\u6362\u884C\u3001\u9017\u53F7\u6216\u7A7A\u683C\u5206\u9694\u3002");
+    const codes = [
+      ...new Set(
+        historyInput.split(/[\s,，、;；]+/).map((v) => v.normalize("NFKC").trim()).filter(Boolean)
+      )
+    ];
+    if (!codes.length)
+      throw Error("\u8BF7\u5148\u8F93\u5165\u7269\u6599\u7F16\u7801\uFF0C\u652F\u6301\u6362\u884C\u3001\u9017\u53F7\u6216\u7A7A\u683C\u5206\u9694\u3002");
     const merged = [.../* @__PURE__ */ new Set([...disk.history, ...codes])];
     const added = merged.length - disk.history.length;
     setHistory(merged);
     setHistoryInput("");
-    setMessage(added ? `\u5DF2\u65B0\u589E ${added} \u4E2A\u5386\u53F2\u6210\u4EA4\u4EF7\u7269\u6599\u7F16\u7801\uFF0C\u6B63\u5728\u4FDD\u5B58 history.json\u3002` : "\u8F93\u5165\u7684\u7269\u6599\u7F16\u7801\u5DF2\u5168\u90E8\u5B58\u5728\u3002");
+    setMessage(
+      added ? `\u5DF2\u65B0\u589E ${added} \u4E2A\u5386\u53F2\u6210\u4EA4\u4EF7\u7269\u6599\u7F16\u7801\uFF0C\u6B63\u5728\u4FDD\u5B58 history.json\u3002` : "\u8F93\u5165\u7684\u7269\u6599\u7F16\u7801\u5DF2\u5168\u90E8\u5B58\u5728\u3002"
+    );
   }
   function removeHistoryCode(code) {
     setHistory(disk.history.filter((item) => item !== code));
     setMessage(`\u5DF2\u5220\u9664\u5386\u53F2\u6210\u4EA4\u4EF7\u7269\u6599\u7F16\u7801 ${code}\uFF0C\u6B63\u5728\u4FDD\u5B58 history.json\u3002`);
   }
   function serialOf(row, index) {
-    const entry = (row.sourceExtra || []).find((e) => /^(序号|编号|序列号)$/.test(String(e.header || "").trim()));
+    const entry = (row.sourceExtra || []).find(
+      (e) => /^(序号|编号|序列号)$/.test(String(e.header || "").trim())
+    );
     return entry?.value || index + 1;
   }
   function noteLabel(note) {
-    return [note.brand && `\u54C1\u724C\uFF1A${note.brand}`, note.keyword && `\u54C1\u540D\uFF1A${note.keyword}`, note.message].filter(Boolean).join("\uFF1B");
+    return [
+      note.brand && `\u54C1\u724C\uFF1A${note.brand}`,
+      note.keyword && `\u54C1\u540D\uFF1A${note.keyword}`,
+      note.message
+    ].filter(Boolean).join("\uFF1B");
   }
   function markInquiry(target, done) {
     setInquiryState((state) => updateInquiryState(state, target, done));
-    setMessage(`\u5DF2\u5C06 ${target.length} \u884C\u6807\u8BB0\u4E3A${done ? "\u5DF2\u8BE2\u4EF7" : "\u672A\u8BE2\u4EF7"}\uFF1B\u5F53\u524D\u4EC5\u4FDD\u5B58\u5728\u672C\u6B21\u5DE5\u4F5C\u53F0\u4F1A\u8BDD\u3002`);
+    setMessage(
+      `\u5DF2\u5C06 ${target.length} \u884C\u6807\u8BB0\u4E3A${done ? "\u5DF2\u8BE2\u4EF7" : "\u672A\u8BE2\u4EF7"}\uFF1B\u5F53\u524D\u4EC5\u4FDD\u5B58\u5728\u672C\u6B21\u5DE5\u4F5C\u53F0\u4F1A\u8BDD\u3002`
+    );
     resetSelection();
   }
   function serialOf(row, index) {
-    const entry = (row.sourceExtra || []).find((e) => /^(序号|编号|序列号)$/.test(String(e.header || "").trim()));
+    const entry = (row.sourceExtra || []).find(
+      (e) => /^(序号|编号|序列号)$/.test(String(e.header || "").trim())
+    );
     return entry?.value || index + 1;
   }
   function noteLabel(note) {
-    return [note.brand && `\u54C1\u724C\uFF1A${note.brand}`, note.keyword && `\u54C1\u540D\uFF1A${note.keyword}`, note.message].filter(Boolean).join("\uFF1B");
+    return [
+      note.brand && `\u54C1\u724C\uFF1A${note.brand}`,
+      note.keyword && `\u54C1\u540D\uFF1A${note.keyword}`,
+      note.message
+    ].filter(Boolean).join("\uFF1B");
   }
   function resetSelection() {
     setSelected([]);
     setManual("");
   }
   function autoMap(b, s, h) {
-    setMapping(Object.fromEntries(Object.entries(mapColumns(b.getWorksheet(s), h)).filter(([k]) => k !== "price")));
+    setMapping(
+      Object.fromEntries(
+        Object.entries(mapColumns(b.getWorksheet(s), h)).filter(
+          ([k]) => k !== "price"
+        )
+      )
+    );
   }
   async function loadOriginal() {
     const value = await disk.openExcel();
@@ -74338,7 +74397,11 @@ function App() {
     setSheet(b.worksheets[0].name);
     const detected = detectHeader(b.worksheets[0]);
     setHeader(detected.headerRow);
-    setMapping(Object.fromEntries(Object.entries(detected.mapping).filter(([k]) => k !== "price")));
+    setMapping(
+      Object.fromEntries(
+        Object.entries(detected.mapping).filter(([k]) => k !== "price")
+      )
+    );
   }
   async function copy() {
     if (!chosen.length) throw Error("\u8BF7\u5148\u52FE\u9009\u8981\u8BE2\u4EF7\u7684\u884C");
@@ -74347,7 +74410,10 @@ function App() {
   }
   function recordForm() {
     const list = [...data[tab] || []];
-    const record = { ...form, id: edit === null ? crypto.randomUUID() : list[edit].id || crypto.randomUUID() };
+    const record = {
+      ...form,
+      id: edit === null ? crypto.randomUUID() : list[edit].id || crypto.randomUUID()
+    };
     if (edit === null) list.push(record);
     else list[edit] = record;
     changeData(tab, list);
@@ -74356,130 +74422,625 @@ function App() {
     setEditorOpen(false);
     setMessage("\u8D44\u6599\u5DF2\u66F4\u65B0\uFF0C\u8BF7\u4EE5\u9876\u90E8\u6587\u4EF6\u4FDD\u5B58\u72B6\u6001\u4E3A\u51C6\u3002");
   }
-  return /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw" }, /* @__PURE__ */ import_react2.default.createElement("style", null, style_default), /* @__PURE__ */ import_react2.default.createElement("header", { className: "pw-head" }, /* @__PURE__ */ import_react2.default.createElement("div", null, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-label" }, "PROCUREMATE"), /* @__PURE__ */ import_react2.default.createElement("h1", null, "\u91C7\u8D2D\u52A9\u624B"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4ECE\u4E00\u5F20\u9700\u6C42\u8868\uFF0C\u5230\u4E00\u6761\u80FD\u76F4\u63A5\u53D1\u9001\u7684\u8BE2\u4EF7\u6D88\u606F\u3002")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-actions" }, /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
-    setDirectory(disk.info?.directory || "");
-    setSettings(!settings);
-  } }, "\u5B58\u50A8\u8BBE\u7F6E"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => download(JSON.stringify({ version: 1, data }, null, 2), "\u91C7\u8D2D\u52A9\u624B\u5907\u4EFD.json") }, "\u5BFC\u51FA\u5907\u4EFD"), /* @__PURE__ */ import_react2.default.createElement("label", { className: "pw-button" }, "\u6062\u590D\u5907\u4EFD", /* @__PURE__ */ import_react2.default.createElement("input", { disabled: !disk.ready || busy, type: "file", accept: ".json", onChange: (e) => act(async () => {
-    const f = e.target.files[0];
-    if (!f) return;
-    const x = JSON.parse(await f.text());
-    validateData(x.data);
-    if (!confirm("\u6062\u590D\u5907\u4EFD\u5C06\u66FF\u6362\u53C2\u8003\u8D44\u6599\uFF0C\u662F\u5426\u7EE7\u7EED\uFF1F")) return;
-    setData(x.data);
-    setInquiryState([]);
-    resetSelection();
-    setMessage("\u5907\u4EFD\u5DF2\u6062\u590D\u3002");
-  }) })))), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-storage-status" }, /* @__PURE__ */ import_react2.default.createElement("span", null, disk.excelStatus), /* @__PURE__ */ import_react2.default.createElement("span", null, disk.status), disk.info && /* @__PURE__ */ import_react2.default.createElement("span", null, "\u76EE\u5F55\uFF1A", disk.info.directory)), disk.error && /* @__PURE__ */ import_react2.default.createElement("div", { role: "alert", className: "pw-message" }, disk.error, disk.ready && /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: busy, onClick: () => act(() => disk.saveCurrent()) }, "\u91CD\u8BD5\u4FDD\u5B58"), disk.error.includes("\u5176\u4ED6\u7A97\u53E3") && /* @__PURE__ */ import_react2.default.createElement("button", { disabled: busy, onClick: () => {
-    if (confirm("\u5C06\u7528\u5F53\u524D\u9875\u9762\u7684\u5168\u90E8\u8D44\u6599\u8986\u76D6\u6587\u4EF6\u4E2D\u7684\u6700\u65B0\u5185\u5BB9\uFF0C\u5176\u4ED6\u7A97\u53E3\u7684\u4FEE\u6539\u53EF\u80FD\u4E22\u5931\u3002\u786E\u8BA4\u4FDD\u5B58\uFF1F")) act(() => disk.saveCurrent(true));
-  } }, "\u7528\u5F53\u524D\u5185\u5BB9\u4FDD\u5B58")), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
-    if (!disk.ready || confirm("\u91CD\u65B0\u8F7D\u5165\u4F1A\u653E\u5F03\u5F53\u524D\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u901A\u5E38\u53EF\u76F4\u63A5\u91CD\u8BD5\u4FDD\u5B58\uFF0C\u65E0\u9700\u91CD\u65B0\u8F7D\u5165\u3002\u786E\u5B9A\u653E\u5F03\u4FEE\u6539\uFF1F")) disk.reload();
-  } }, "\u91CD\u65B0\u8F7D\u5165")), settings && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4EC5\u4FDD\u5B58\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u548C\u516C\u53F8\u7701\u4EFD\uFF1B\u8BE2\u4EF7\u72B6\u6001\u53EA\u5728\u5F53\u524D\u5DE5\u4F5C\u53F0\u4F1A\u8BDD\u4E2D\u4FDD\u7559\uFF0Chistory.json \u5355\u72EC\u4FDD\u5B58\u6709\u5386\u53F2\u6210\u4EA4\u4EF7\u7684\u7269\u6599\u7F16\u7801\u3002\u91C7\u8D2D\u8868\u53EA\u8BFB\u663E\u793A\uFF1B\u4F9B\u8D27\u5546\u7B49\u53C2\u8003\u8D44\u6599\u81EA\u52A8\u5199\u5165\u5F53\u524D\u6587\u4EF6\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u76EE\u5F55\u8DEF\u5F84", /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55", value: directory, onChange: (e) => setDirectory(e.target.value), placeholder: "/Users/double/buyer/data/" })), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, disk.info?.file && `\u5F53\u524D\u6587\u4EF6\uFF1A${disk.info.file}`), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
-    await disk.changeDirectory(directory, "copy");
-    resetSelection();
-    setMessage("\u5DF2\u590D\u5236\u8D44\u6599\u5E76\u5207\u6362\u76EE\u5F55\u3002\u539F\u76EE\u5F55\u6587\u4EF6\u4FDD\u7559\uFF0C\u540E\u7EED\u53EA\u66F4\u65B0\u65B0\u76EE\u5F55\u3002");
-  }) }, "\u590D\u5236\u5F53\u524D\u8D44\u6599\u5E76\u5207\u6362"), /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !disk.ready || busy, onClick: () => act(async () => {
-    if (!confirm("\u5C06\u8BFB\u53D6\u76EE\u6807\u76EE\u5F55\u7684\u8D44\u6599\uFF1B\u7A7A\u76EE\u5F55\u4F1A\u5EFA\u7ACB\u7A7A\u8D44\u6599\u3002\u5F53\u524D\u76EE\u5F55\u7684\u6587\u4EF6\u4FDD\u6301\u539F\u6837\u3002\u662F\u5426\u7EE7\u7EED\uFF1F")) return;
-    await disk.changeDirectory(directory, "open");
-    resetSelection();
-    setMessage("\u5DF2\u5207\u6362\u8D44\u6599\u76EE\u5F55\u3002");
-  }) }, "\u4F7F\u7528\u76EE\u6807\u76EE\u5F55\u8D44\u6599")), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u590D\u5236\u5230\u5DF2\u6709\u91C7\u8D2D\u8D44\u6599\u7684\u76EE\u5F55\u4F1A\u505C\u6B62\uFF0C\u907F\u514D\u8986\u76D6\u3002\u76EE\u5F55\u8BBE\u7F6E\u72EC\u7ACB\u4E8E\u63D2\u4EF6\u5B89\u88C5\u4F4D\u7F6E\u4FDD\u5B58\u3002")), /* @__PURE__ */ import_react2.default.createElement("fieldset", { className: "pw-content", disabled: !disk.ready || busy }, /* @__PURE__ */ import_react2.default.createElement("nav", { "aria-label": "\u5DE5\u4F5C\u53F0\u5BFC\u822A" }, [["work", "\u91C7\u8D2D\u660E\u7EC6"], ...Object.entries(labels), ["history", "\u5386\u53F2\u6210\u4EA4\u4EF7"]].map(([id, label]) => /* @__PURE__ */ import_react2.default.createElement("button", { key: id, className: tab === id ? "active" : "", onClick: () => {
-    setTab(id);
-    setForm({});
-    setEdit(null);
-    setCatalogQuery("");
-    setEditorOpen(false);
-  } }, label, id === "history" ? /* @__PURE__ */ import_react2.default.createElement("small", null, disk.history.length) : data[id]?.length > 0 && /* @__PURE__ */ import_react2.default.createElement("small", null, data[id].length)))), message && /* @__PURE__ */ import_react2.default.createElement("div", { role: "status", className: "pw-message" }, message, /* @__PURE__ */ import_react2.default.createElement("button", { "aria-label": "\u5173\u95ED\u63D0\u793A", onClick: () => setMessage("") }, "\xD7")), tab === "work" ? /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", onClick: () => act(loadOriginal) }, "\u6253\u5F00\u539F Excel"), /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !selected.length, onClick: resetSelection }, "\u53D6\u6D88\u5168\u9009"), /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !chosen.length, onClick: () => markInquiry(chosen, true) }, "\u9009\u4E2D\u6807\u4E3A\u5DF2\u8BE2\u4EF7"), /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !chosen.length, onClick: () => markInquiry(chosen, false) }, "\u9009\u4E2D\u6807\u4E3A\u672A\u8BE2\u4EF7"), /* @__PURE__ */ import_react2.default.createElement("select", { "aria-label": "\u7B5B\u9009\u8BE2\u4EF7\u72B6\u6001", value: inquiryFilter, onChange: (e) => {
-    setInquiryFilter(e.target.value);
-    resetSelection();
-  } }, /* @__PURE__ */ import_react2.default.createElement("option", { value: "all" }, "\u5168\u90E8\u72B6\u6001"), /* @__PURE__ */ import_react2.default.createElement("option", { value: "pending" }, "\u672A\u8BE2\u4EF7"), /* @__PURE__ */ import_react2.default.createElement("option", { value: "done" }, "\u5DF2\u8BE2\u4EF7")), /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u641C\u7D22\u91C7\u8D2D\u660E\u7EC6", placeholder: "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u3001\u54C1\u540D\u6216\u578B\u53F7", value: filter, onChange: (e) => setFilter(e.target.value) }), /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !rows.length || busy, onClick: () => act(async () => {
-    download(await exportBook(rows.map((r) => {
-      const ss = suppliersFor(r, data.suppliers);
-      return { ...r, supplier: ss.map((s) => s.name).join(" / "), contact: ss.map((s) => [s.contact, s.wechat, s.phone].filter(Boolean).join(" ")).join(" / ") };
-    })), "\u91C7\u8D2D\u660E\u7EC6-\u6574\u7406\u7248.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    setMessage("\u5DF2\u5BFC\u51FA\u6574\u7406\u7248 Excel\uFF1B\u5DF2\u751F\u6210\u6574\u7406\u7248\u3002");
-  }) }, "\u5BFC\u51FA\u6574\u7406\u7248")), contextMenu && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-context-menu", style: { left: contextMenu.x, top: contextMenu.y }, onMouseLeave: () => setContextMenu(null) }, /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
-    markInquiry([contextMenu.row], true);
-    setContextMenu(null);
-  } }, "\u6807\u4E3A\u5DF2\u8BE2\u4EF7"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
-    markInquiry([contextMenu.row], false);
-    setContextMenu(null);
-  } }, "\u6807\u4E3A\u672A\u8BE2\u4EF7"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
-    resetSelection();
-    setContextMenu(null);
-  } }, "\u53D6\u6D88\u5168\u9009")), book && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u786E\u8BA4\u8868\u5934\u4E0E\u5217\u5BF9\u5E94\u5173\u7CFB"), /* @__PURE__ */ import_react2.default.createElement("p", null, fileName, " \xB7 \u5BFC\u5165\u5C06\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u5BFC\u5165\u660E\u7EC6\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u5DE5\u4F5C\u8868", /* @__PURE__ */ import_react2.default.createElement("select", { value: sheet, onChange: (e) => {
-    setSheet(e.target.value);
-    const found = detectHeader(book.getWorksheet(e.target.value));
-    setHeader(found.headerRow);
-    setMapping(Object.fromEntries(Object.entries(found.mapping).filter(([k]) => k !== "price")));
-  } }, book.worksheets.map((s) => /* @__PURE__ */ import_react2.default.createElement("option", { key: s.name }, s.name)))), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u8868\u5934\u884C", /* @__PURE__ */ import_react2.default.createElement("input", { type: "number", min: "1", value: header, onChange: (e) => {
-    const h = Math.max(1, Number(e.target.value));
-    setHeader(h);
-    autoMap(book, sheet, h);
-  } })), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(fields).filter(([k]) => k !== "price").map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement("select", { "aria-label": `${l}\u5BF9\u5E94\u5217`, value: mapping[k] || "", onChange: (e) => setMapping({ ...mapping, [k]: e.target.value }) }, /* @__PURE__ */ import_react2.default.createElement("option", { value: "" }, "\u4E0D\u5BFC\u5165"), Array.from({ length: Math.min(book.getWorksheet(sheet).columnCount, 100) }, (_, i) => /* @__PURE__ */ import_react2.default.createElement("option", { key: i, value: i + 1 }, i + 1, " \xB7 ", book.getWorksheet(sheet).getRow(header).getCell(i + 1).text || "\u7A7A\u8868\u5934")))))), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", onClick: () => act(() => {
-    if (!mapping.brand || !mapping.model || !mapping.quantity) throw Error("\u8BF7\u81F3\u5C11\u5BF9\u5E94\u54C1\u724C\u3001\u578B\u53F7\u3001\u6570\u91CF\u5217");
-    if (new Set(Object.values(mapping).filter(Boolean).map(String)).size !== Object.values(mapping).filter(Boolean).length) throw Error("\u4E0D\u540C\u5B57\u6BB5\u4E0D\u80FD\u4F7F\u7528\u540C\u4E00\u5217");
-    const next = sheetRows(book.getWorksheet(sheet), header, mapping).map((r) => ({ ...r, sourceFile: fileName, hasHistoryPrice: hasHistoryPrice(r, disk.history) }));
-    const historyCount = next.filter((r) => r.hasHistoryPrice).length;
-    if (next.length > 1e4) throw Error("\u660E\u7EC6\u8D85\u8FC7 10000 \u884C\uFF0C\u8BF7\u62C6\u5206\u5BFC\u5165");
-    if (rows.length && !confirm("\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\u5E76\u66FF\u6362\u5F53\u524D\u660E\u7EC6\uFF1F\u5BFC\u5165\u7684\u660E\u7EC6\u5C06\u5168\u90E8\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\u3002")) return;
-    setInquiryState([]);
-    disk.bindExcel(sourceExcel);
-    setRows(next);
-    setInquiryFilter("all");
-    setNotesExpanded(false);
-    resetSelection();
-    setBook(null);
-    setMessage(`\u5DF2\u5BFC\u5165 ${next.length} \u884C\uFF0C\u5DF2\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u4E3A\u672A\u8BE2\u4EF7\uFF1B\u5339\u914D\u5230 ${historyCount} \u4E2A\u6709\u5386\u53F2\u6210\u4EA4\u4EF7\u7684\u7269\u6599\u7F16\u7801\u3002`);
-  }) }, "\u786E\u8BA4\u5BFC\u5165"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setBook(null) }, "\u53D6\u6D88")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-summary" }, /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.length), " \u884C\u9700\u6C42"), /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.filter((r) => suppliersFor(r, data.suppliers).length).length), " \u884C\u6709\u5408\u4F5C\u4F9B\u8D27\u5546"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u8BE2\u4EF7 ", doneIds.size, " \u884C \xB7 \u672A\u8BE2\u4EF7 ", rows.length - doneIds.size, " \u884C"), /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-summary-reminder" }, generalNotes.length > 0 && /* @__PURE__ */ import_react2.default.createElement("button", { className: "pw-reminder-trigger", "aria-expanded": notesExpanded, onClick: () => setNotesExpanded(!notesExpanded) }, "\u26A0 \u901A\u7528\u63D0\u9192 ", /* @__PURE__ */ import_react2.default.createElement("b", null, generalNotes.length))), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u9009 ", chosen.length, " \u884C")), /* @__PURE__ */ import_react2.default.createElement("div", { className: `pw-reminder-panel ${notesExpanded ? "is-open" : ""}`, "aria-label": "\u901A\u7528\u6CE8\u610F\u4E8B\u9879" }, generalNotes.length ? (notesExpanded ? generalNotes : generalNotes.slice(0, 1)).map((note, i) => /* @__PURE__ */ import_react2.default.createElement("p", { key: i }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-note-number" }, i + 1), /* @__PURE__ */ import_react2.default.createElement("span", null, note))) : null, generalNotes.length > 1 && /* @__PURE__ */ import_react2.default.createElement("button", { className: "pw-reminder-more", onClick: () => setNotesExpanded(!notesExpanded) }, notesExpanded ? "\u6536\u8D77" : `\u5C55\u5F00\u5168\u90E8\uFF08${generalNotes.length} \u6761\uFF09`)), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-grid" }, /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-sheet" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-table-scroll" }, /* @__PURE__ */ import_react2.default.createElement("table", null, /* @__PURE__ */ import_react2.default.createElement("thead", null, /* @__PURE__ */ import_react2.default.createElement("tr", null, /* @__PURE__ */ import_react2.default.createElement("th", null, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u9009\u62E9\u5F53\u524D\u7B5B\u9009\u7684\u5168\u90E8\u884C", type: "checkbox", checked: !!shown.length && shown.every((r) => selected.includes(r.id)), onChange: (e) => {
-    setSelected(e.target.checked ? [.../* @__PURE__ */ new Set([...selected, ...shown.map((r) => r.id)])] : selected.filter((id) => !shown.some((r) => r.id === id)));
-    setManual("");
-  } })), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u5E8F\u53F7"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u54C1\u724C / \u54C1\u540D"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u578B\u53F7"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u6570\u91CF"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u4F9B\u8D27\u5546 / \u8054\u7CFB\u65B9\u5F0F"))), /* @__PURE__ */ import_react2.default.createElement("tbody", null, shown.map((r, index) => {
-    const ss = suppliersFor(r, data.suppliers), notes = rowReminders(r, data);
-    return /* @__PURE__ */ import_react2.default.createElement("tr", { key: r.id, onContextMenu: (e) => {
-      e.preventDefault();
-      setContextMenu({ x: e.clientX, y: e.clientY, row: r });
-    }, className: [ss.length ? "partner" : "", doneIds.has(r.id) ? "pw-inquired" : ""].filter(Boolean).join(" ") }, /* @__PURE__ */ import_react2.default.createElement("td", null, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": `\u9009\u62E9 ${r.model}`, type: "checkbox", checked: selected.includes(r.id), onChange: (e) => {
-      setSelected(e.target.checked ? [...selected, r.id] : selected.filter((id) => id !== r.id));
-      setManual("");
-    } })), /* @__PURE__ */ import_react2.default.createElement("td", { className: "mono pw-serial" }, serialOf(r, index), notes.map((note, i) => /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-note-icon", key: i, "data-tooltip": noteLabel(note), "aria-label": noteLabel(note) }, "!")), hasHistoryPrice(r, disk.history) && /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-history-badge", title: "\u5DF2\u6709\u5386\u53F2\u6210\u4EA4\u4EF7", "aria-label": "\u5DF2\u6709\u5386\u53F2\u6210\u4EA4\u4EF7" }, "\u5386\u53F2\u4EF7")), /* @__PURE__ */ import_react2.default.createElement("td", null, /* @__PURE__ */ import_react2.default.createElement("b", null, r.brand || "\u672A\u586B\u5199\u54C1\u724C"), /* @__PURE__ */ import_react2.default.createElement("small", null, r.name), r.note && /* @__PURE__ */ import_react2.default.createElement("small", null, r.note)), /* @__PURE__ */ import_react2.default.createElement("td", { className: "mono" }, r.model || "\u672A\u586B\u5199\u578B\u53F7"), /* @__PURE__ */ import_react2.default.createElement("td", null, r.quantity, " ", r.unit), /* @__PURE__ */ import_react2.default.createElement("td", null, ss.length ? ss.map((s, i) => /* @__PURE__ */ import_react2.default.createElement("div", { key: i }, /* @__PURE__ */ import_react2.default.createElement("b", null, s.name || s.contact || "\u5DF2\u8BB0\u5F55\u8054\u7CFB\u65B9\u5F0F"), safeUrl(s.url) && /* @__PURE__ */ import_react2.default.createElement("a", { href: safeUrl(s.url), target: "_blank", rel: "noreferrer" }, "\u6253\u5F00\u5E97\u94FA \u2197"), s.note && /* @__PURE__ */ import_react2.default.createElement("small", null, s.note), /* @__PURE__ */ import_react2.default.createElement("small", null, [s.contact, s.wechat && `\u5FAE\u4FE1 ${s.wechat}`, s.phone].filter(Boolean).join(" \xB7 ") || "\u5C1A\u672A\u586B\u5199\u8054\u7CFB\u65B9\u5F0F"))) : /* @__PURE__ */ import_react2.default.createElement("span", { className: "muted" }, "\u5F85\u5BFB\u627E\u6E20\u9053")));
-  })))), !!rows.length && !shown.length && /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-empty" }, "\u6CA1\u6709\u7B26\u5408\u5F53\u524D\u641C\u7D22\u548C\u8BE2\u4EF7\u72B6\u6001\u7684\u660E\u7EC6\u3002"), !rows.length && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-empty" }, /* @__PURE__ */ import_react2.default.createElement("span", null, "\u25A4"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u5148\u6253\u5F00\u4E00\u5F20\u91C7\u8D2D\u9700\u6C42\u8868"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u652F\u6301 .xls / .xlsx\uFF1B\u53EF\u9009\u62E9\u5DE5\u4F5C\u8868\u548C\u8868\u5934\u884C\u3002", /* @__PURE__ */ import_react2.default.createElement("br", null), "\u5408\u4F5C\u4F9B\u8D27\u5546\u6807\u7EFF\uFF0C\u62A5\u4EF7\u6761\u4EF6\u9010\u884C\u6838\u5BF9\u3002"))), /* @__PURE__ */ import_react2.default.createElement("aside", null, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-ticket" }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-label" }, "\u8BE2\u4EF7\u5355 \xB7 \u7EAF\u6587\u672C"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u9009\u597D\u660E\u7EC6\uFF0C\u76F4\u63A5\u590D\u5236"), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, destination.error || (destination.province ? `\u53D1\u5F80\uFF1A${destination.province}\uFF08\u6839\u636E\u516C\u53F8\u914D\u7F6E\u6216\u540D\u79F0\u8BC6\u522B\uFF09` : "\u9009\u4E2D\u660E\u7EC6\u540E\uFF0C\u6839\u636E\u9700\u6C42\u516C\u53F8\u8BC6\u522B\u53D1\u5F80\u7701\u4EFD\u3002")), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
-    const company = chosen.map(demandCompany).find((c) => c && !companyProvince(c, data.companies));
-    setTab("companies");
-    setCatalogQuery("");
-    setForm(company ? { company } : {});
-    setEdit(null);
-    setEditorOpen(!!company);
-  } }, "\u914D\u7F6E\u516C\u53F8\u7701\u4EFD"), /* @__PURE__ */ import_react2.default.createElement("textarea", { "aria-label": "\u8BE2\u4EF7\u6587\u672C", rows: 13, value: chosen.length ? text : "", placeholder: "\u52FE\u9009\u5DE6\u4FA7\u660E\u7EC6\u540E\uFF0C\u8BE2\u4EF7\u6587\u672C\u4F1A\u51FA\u73B0\u5728\u8FD9\u91CC\u3002\u53EA\u5305\u542B\u4EA7\u54C1\u9700\u6C42\uFF0C\u4E0D\u5305\u542B\u91C7\u8D2D\u5E95\u4EF7\u3002", onChange: (e) => setManual(e.target.value) }), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", disabled: !chosen.length || busy, onClick: () => act(copy) }, "\u590D\u5236\u8BE2\u4EF7\u6587\u672C"), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u590D\u5236\u540E\u81EA\u884C\u7C98\u8D34\u81F3\u5FAE\u4FE1\u6216\u7535\u5546\u5BA2\u670D\u3002\u53EF\u7F16\u8F91\u6587\u5B57\uFF1B\u8C03\u6574\u9009\u4E2D\u884C\u540E\u91CD\u65B0\u751F\u6210\u3002"))))) : tab === "history" ? /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-records pw-history-manager" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u5386\u53F2\u6210\u4EA4\u4EF7\u7269\u6599\u7F16\u7801"), /* @__PURE__ */ import_react2.default.createElement("span", { className: "muted" }, "\u5F53\u524D\u5171 ", disk.history.length, " \u4E2A\u7F16\u7801")), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u6DFB\u52A0\u66FE\u7ECF\u6210\u4EA4\u8FC7\u7684\u7269\u6599\u7F16\u7801\u3002\u652F\u6301\u4E00\u6B21\u7C98\u8D34\u591A\u4E2A\u7F16\u7801\uFF0C\u7528\u6362\u884C\u3001\u7A7A\u683C\u3001\u9017\u53F7\u6216\u5206\u53F7\u5206\u9694\uFF0C\u4FDD\u5B58\u540E\u5199\u5165\u5F53\u524D\u8D44\u6599\u76EE\u5F55\u7684 history.json\u3002"), /* @__PURE__ */ import_react2.default.createElement("textarea", { "aria-label": "\u6279\u91CF\u6DFB\u52A0\u5386\u53F2\u6210\u4EA4\u4EF7\u7269\u6599\u7F16\u7801", rows: 6, value: historyInput, onChange: (e) => setHistoryInput(e.target.value), placeholder: "\u4F8B\u5982\uFF1A\\n4020006998\\n4100169304\\n\u6216\u7528\u9017\u53F7\u5206\u9694\u591A\u4E2A\u7F16\u7801" }), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", onClick: () => act(addHistoryCodes) }, "\u6279\u91CF\u6DFB\u52A0\u5E76\u4FDD\u5B58"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setHistoryInput("") }, "\u6E05\u7A7A\u8F93\u5165")), /* @__PURE__ */ import_react2.default.createElement("label", { className: "pw-history-search" }, "\u641C\u7D22\u7269\u6599\u7F16\u7801", /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": "\u641C\u7D22\u5386\u53F2\u6210\u4EA4\u4EF7\u7269\u6599\u7F16\u7801", value: historyQuery, onChange: (e) => setHistoryQuery(e.target.value), placeholder: "\u8F93\u5165\u5B8C\u6574\u6216\u90E8\u5206\u7269\u6599\u7F16\u7801" })), historyQuery.trim() ? /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-history-codes" }, disk.history.filter((code) => code.toLowerCase().includes(historyQuery.trim().toLowerCase())).map((code) => /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-history-code", key: code }, /* @__PURE__ */ import_react2.default.createElement("span", null, code), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => removeHistoryCode(code) }, "\u5220\u9664"))), !disk.history.some((code) => code.toLowerCase().includes(historyQuery.trim().toLowerCase())) && /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-empty" }, "\u6CA1\u6709\u5339\u914D\u7684\u7269\u6599\u7F16\u7801\u3002")) : /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u8BF7\u8F93\u5165\u5173\u952E\u8BCD\u540E\u67E5\u770B\u5339\u914D\u7684\u7269\u6599\u7F16\u7801\u3002")) : /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-records" }, tab === "companies" && /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u586B\u5199\u9700\u6C42\u516C\u53F8\u7684\u5B8C\u6574\u540D\u79F0\u5E76\u9009\u62E9\u53D1\u5F80\u7701\u4EFD\u3002\u914D\u7F6E\u4F18\u5148\u4E8E\u540D\u79F0\u8BC6\u522B\uFF0C\u8BF7\u6309\u5B9E\u9645\u6536\u8D27\u7701\u4EFD\u586B\u5199\uFF1B\u540C\u4E00\u516C\u53F8\u53EA\u80FD\u914D\u7F6E\u4E00\u4E2A\u7701\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
-    setForm({});
-    setEdit(null);
-    setEditorOpen(true);
-  } }, "\u65B0\u589E", labels[tab]), /* @__PURE__ */ import_react2.default.createElement("h2", null, labels[tab], "\u8D44\u6599"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => act(async () => download(await catalogBook(schemas[tab]), `${labels[tab]}\u6A21\u677F.xlsx`)) }, "\u4E0B\u8F7D Excel \u6A21\u677F"), /* @__PURE__ */ import_react2.default.createElement("label", { className: "pw-button" }, "\u5BFC\u5165 Excel / JSON", /* @__PURE__ */ import_react2.default.createElement("input", { type: "file", accept: ".json,.xls,.xlsx", onChange: (e) => act(async () => {
-    const f = e.target.files[0];
-    if (!f) return;
-    if (f.size > 20 * 1024 * 1024) throw Error("\u6587\u4EF6\u8D85\u8FC7 20 MB");
-    const list = /\.xlsx?$/i.test(f.name) ? await importCatalog(await f.arrayBuffer(), schemas[tab]) : JSON.parse(await f.text());
-    validateData({ ...data, [tab]: list });
-    if (!confirm(`\u7528\u5BFC\u5165\u6587\u4EF6\u66FF\u6362\u5168\u90E8${labels[tab]}\u8D44\u6599\uFF1F`)) return;
-    changeData(tab, list);
-    setMessage(`\u5DF2\u5BFC\u5165 ${list.length} \u6761${labels[tab]}\u8D44\u6599\u3002${tab === "suppliers" ? "\u4EC5\u586B\u54C1\u724C\u7684\u8BB0\u5F55\u4E0D\u4F1A\u6807\u4E3A\u5DF2\u6709\u4F9B\u8D27\u5546\u3002" : ""}`);
-  }) })), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => download(JSON.stringify(data[tab] || [], null, 2), `${tab}.json`) }, "\u5BFC\u51FA\u8D44\u6599")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-catalog-search" }, /* @__PURE__ */ import_react2.default.createElement("input", { "aria-label": `\u641C\u7D22${labels[tab]}`, placeholder: tab === "suppliers" ? "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u3001\u8054\u7CFB\u4EBA\u3001\u5FAE\u4FE1\u6216\u7535\u8BDD" : tab === "companies" ? "\u641C\u7D22\u516C\u53F8\u540D\u79F0\u6216\u7701\u4EFD" : "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u6216\u63D0\u9192\u5185\u5BB9", value: catalogQuery, onChange: (e) => setCatalogQuery(e.target.value) }), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setCatalogQuery("") }, "\u6E05\u7A7A\u641C\u7D22"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u627E\u5230 ", catalogResults.length, " / ", (data[tab] || []).length, " \u6761")), editorOpen && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-editor-backdrop" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-editor", role: "dialog", "aria-modal": "true", "aria-label": `${edit === null ? "\u65B0\u589E" : "\u7F16\u8F91"}${labels[tab]}` }, /* @__PURE__ */ import_react2.default.createElement("h2", null, edit === null ? "\u65B0\u589E" : "\u7F16\u8F91", labels[tab]), /* @__PURE__ */ import_react2.default.createElement("form", { onSubmit: (e) => {
-    e.preventDefault();
-    act(recordForm);
-  } }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, tab === "companies" && k === "province" ? /* @__PURE__ */ import_react2.default.createElement("select", { "aria-label": l, required: true, value: form[k] || "", onChange: (e) => setForm({ ...form, [k]: e.target.value }) }, /* @__PURE__ */ import_react2.default.createElement("option", { value: "" }, "\u8BF7\u9009\u62E9\u7701\u4EFD"), provinceOptions.map((p) => /* @__PURE__ */ import_react2.default.createElement("option", { key: p }, p))) : /* @__PURE__ */ import_react2.default.createElement("input", { required: tab === "companies", value: form[k] ?? "", onChange: (e) => setForm({ ...form, [k]: e.target.value }) })))), /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary" }, edit === null ? "\u6DFB\u52A0\u8D44\u6599" : "\u4FDD\u5B58\u4FEE\u6539"), /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", onClick: () => {
-    setEdit(null);
-    setForm({});
-    setEditorOpen(false);
-  } }, "\u53D6\u6D88\u7F16\u8F91")))), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-catalog-list" }, catalogResults.map(({ r, i }) => /* @__PURE__ */ import_react2.default.createElement("article", { key: r.id || i }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).filter(([k]) => r[k]).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("div", { key: k }, /* @__PURE__ */ import_react2.default.createElement("small", null, l), /* @__PURE__ */ import_react2.default.createElement("span", null, k === "url" && safeUrl(r[k]) ? /* @__PURE__ */ import_react2.default.createElement("a", { href: safeUrl(r[k]), target: "_blank", rel: "noreferrer" }, "\u6253\u5F00\u5E97\u94FA \u2197") : r[k])))), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
-    setForm(r);
-    setEdit(i);
-    setEditorOpen(true);
-  } }, "\u7F16\u8F91"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => {
-    if (confirm("\u5220\u9664\u8FD9\u6761\u8D44\u6599\uFF1F")) {
-      changeData(tab, data[tab].filter((_, n) => n !== i));
-      setEdit(null);
-      setForm({});
+  return /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw" }, /* @__PURE__ */ import_react2.default.createElement("style", null, style_default), /* @__PURE__ */ import_react2.default.createElement("header", { className: "pw-head" }, /* @__PURE__ */ import_react2.default.createElement("div", null, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-label" }, "PROCUREMATE"), /* @__PURE__ */ import_react2.default.createElement("h1", null, "\u91C7\u8D2D\u52A9\u624B"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4ECE\u4E00\u5F20\u9700\u6C42\u8868\uFF0C\u5230\u4E00\u6761\u80FD\u76F4\u63A5\u53D1\u9001\u7684\u8BE2\u4EF7\u6D88\u606F\u3002")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-actions" }, /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      onClick: () => {
+        setDirectory(disk.info?.directory || "");
+        setSettings(!settings);
+      }
+    },
+    "\u5B58\u50A8\u8BBE\u7F6E"
+  ), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      onClick: () => download(
+        JSON.stringify({ version: 1, data }, null, 2),
+        "\u91C7\u8D2D\u52A9\u624B\u5907\u4EFD.json"
+      )
+    },
+    "\u5BFC\u51FA\u5907\u4EFD"
+  ), /* @__PURE__ */ import_react2.default.createElement("label", { className: "pw-button" }, "\u6062\u590D\u5907\u4EFD", /* @__PURE__ */ import_react2.default.createElement(
+    "input",
+    {
+      disabled: !disk.ready || busy,
+      type: "file",
+      accept: ".json",
+      onChange: (e) => act(async () => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const x = JSON.parse(await f.text());
+        validateData(x.data);
+        if (!confirm("\u6062\u590D\u5907\u4EFD\u5C06\u66FF\u6362\u53C2\u8003\u8D44\u6599\uFF0C\u662F\u5426\u7EE7\u7EED\uFF1F")) return;
+        setData(x.data);
+        setInquiryState([]);
+        resetSelection();
+        setMessage("\u5907\u4EFD\u5DF2\u6062\u590D\u3002");
+      })
     }
-  } }, "\u5220\u9664"))), !catalogResults.length && /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-empty" }, catalogQuery ? "\u6CA1\u6709\u5339\u914D\u7ED3\u679C\uFF0C\u8BF7\u8C03\u6574\u641C\u7D22\u8BCD\u3002" : "\u5C1A\u65E0\u8D44\u6599\uFF0C\u53EF\u65B0\u589E\u6216\u5BFC\u5165\u3002")))), /* @__PURE__ */ import_react2.default.createElement("footer", null, "\u91C7\u8D2D\u8868\u53EA\u8BFB\uFF0C\u4E0D\u4FEE\u6539\u539F\u6587\u4EF6\uFF1B\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u4E0E\u516C\u53F8\u7701\u4EFD\u5199\u5165\u6240\u9009\u76EE\u5F55\u7684 procurement-workbench.json\uFF0C\u8BE2\u4EF7\u72B6\u6001\u4EC5\u4FDD\u7559\u5728\u5F53\u524D\u4F1A\u8BDD\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002\u6574\u7406\u7248\u4FDD\u7559\u6620\u5C04\u5B57\u6BB5\u53CA\u6709\u8868\u5934\u7684\u5176\u4ED6\u539F\u59CB\u5217\uFF0C\u4E0D\u4FDD\u7559\u539F\u8868\u6837\u5F0F\u3001\u516C\u5F0F\u548C\u5176\u4ED6\u5DE5\u4F5C\u8868\u3002"));
+  )))), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-storage-status" }, /* @__PURE__ */ import_react2.default.createElement("span", null, disk.excelStatus), /* @__PURE__ */ import_react2.default.createElement("span", null, disk.status), disk.info && /* @__PURE__ */ import_react2.default.createElement("span", null, "\u76EE\u5F55\uFF1A", disk.info.directory)), disk.error && /* @__PURE__ */ import_react2.default.createElement("div", { role: "alert", className: "pw-message" }, disk.error, disk.ready && /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      disabled: busy,
+      onClick: () => act(() => disk.saveCurrent())
+    },
+    "\u91CD\u8BD5\u4FDD\u5B58"
+  ), disk.error.includes("\u5176\u4ED6\u7A97\u53E3") && /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      disabled: busy,
+      onClick: () => {
+        if (confirm(
+          "\u5C06\u7528\u5F53\u524D\u9875\u9762\u7684\u5168\u90E8\u8D44\u6599\u8986\u76D6\u6587\u4EF6\u4E2D\u7684\u6700\u65B0\u5185\u5BB9\uFF0C\u5176\u4ED6\u7A97\u53E3\u7684\u4FEE\u6539\u53EF\u80FD\u4E22\u5931\u3002\u786E\u8BA4\u4FDD\u5B58\uFF1F"
+        ))
+          act(() => disk.saveCurrent(true));
+      }
+    },
+    "\u7528\u5F53\u524D\u5185\u5BB9\u4FDD\u5B58"
+  )), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      onClick: () => {
+        if (!disk.ready || confirm(
+          "\u91CD\u65B0\u8F7D\u5165\u4F1A\u653E\u5F03\u5F53\u524D\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u901A\u5E38\u53EF\u76F4\u63A5\u91CD\u8BD5\u4FDD\u5B58\uFF0C\u65E0\u9700\u91CD\u65B0\u8F7D\u5165\u3002\u786E\u5B9A\u653E\u5F03\u4FEE\u6539\uFF1F"
+        ))
+          disk.reload();
+      }
+    },
+    "\u91CD\u65B0\u8F7D\u5165"
+  )), settings && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u4EC5\u4FDD\u5B58\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u548C\u516C\u53F8\u7701\u4EFD\uFF1B\u8BE2\u4EF7\u72B6\u6001\u53EA\u5728\u5F53\u524D\u5DE5\u4F5C\u53F0\u4F1A\u8BDD\u4E2D\u4FDD\u7559\uFF0Chistory.json \u5355\u72EC\u4FDD\u5B58\u6709\u5386\u53F2\u6210\u4EA4\u4EF7\u7684\u7269\u6599\u7F16\u7801\u3002\u91C7\u8D2D\u8868\u53EA\u8BFB\u663E\u793A\uFF1B\u4F9B\u8D27\u5546\u7B49\u53C2\u8003\u8D44\u6599\u81EA\u52A8\u5199\u5165\u5F53\u524D\u6587\u4EF6\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u76EE\u5F55\u8DEF\u5F84", /* @__PURE__ */ import_react2.default.createElement(
+    "input",
+    {
+      "aria-label": "\u8D44\u6599\u5B58\u50A8\u76EE\u5F55",
+      value: directory,
+      onChange: (e) => setDirectory(e.target.value),
+      placeholder: "/Users/double/buyer/data/"
+    }
+  )), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, disk.info?.file && `\u5F53\u524D\u6587\u4EF6\uFF1A${disk.info.file}`), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      disabled: !disk.ready || busy,
+      onClick: () => act(async () => {
+        await disk.changeDirectory(directory, "copy");
+        resetSelection();
+        setMessage(
+          "\u5DF2\u590D\u5236\u8D44\u6599\u5E76\u5207\u6362\u76EE\u5F55\u3002\u539F\u76EE\u5F55\u6587\u4EF6\u4FDD\u7559\uFF0C\u540E\u7EED\u53EA\u66F4\u65B0\u65B0\u76EE\u5F55\u3002"
+        );
+      })
+    },
+    "\u590D\u5236\u5F53\u524D\u8D44\u6599\u5E76\u5207\u6362"
+  ), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      disabled: !disk.ready || busy,
+      onClick: () => act(async () => {
+        if (!confirm(
+          "\u5C06\u8BFB\u53D6\u76EE\u6807\u76EE\u5F55\u7684\u8D44\u6599\uFF1B\u7A7A\u76EE\u5F55\u4F1A\u5EFA\u7ACB\u7A7A\u8D44\u6599\u3002\u5F53\u524D\u76EE\u5F55\u7684\u6587\u4EF6\u4FDD\u6301\u539F\u6837\u3002\u662F\u5426\u7EE7\u7EED\uFF1F"
+        ))
+          return;
+        await disk.changeDirectory(directory, "open");
+        resetSelection();
+        setMessage("\u5DF2\u5207\u6362\u8D44\u6599\u76EE\u5F55\u3002");
+      })
+    },
+    "\u4F7F\u7528\u76EE\u6807\u76EE\u5F55\u8D44\u6599"
+  )), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u590D\u5236\u5230\u5DF2\u6709\u91C7\u8D2D\u8D44\u6599\u7684\u76EE\u5F55\u4F1A\u505C\u6B62\uFF0C\u907F\u514D\u8986\u76D6\u3002\u76EE\u5F55\u8BBE\u7F6E\u72EC\u7ACB\u4E8E\u63D2\u4EF6\u5B89\u88C5\u4F4D\u7F6E\u4FDD\u5B58\u3002")), /* @__PURE__ */ import_react2.default.createElement("fieldset", { className: "pw-content", disabled: !disk.ready || busy }, /* @__PURE__ */ import_react2.default.createElement("nav", { "aria-label": "\u5DE5\u4F5C\u53F0\u5BFC\u822A" }, [
+    ["work", "\u91C7\u8D2D\u660E\u7EC6"],
+    ...Object.entries(labels),
+    ["history", "\u5386\u53F2\u6210\u4EA4\u4EF7"]
+  ].map(([id, label]) => /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      key: id,
+      className: tab === id ? "active" : "",
+      onClick: () => {
+        setTab(id);
+        setForm({});
+        setEdit(null);
+        setCatalogQuery("");
+        setEditorOpen(false);
+      }
+    },
+    label,
+    id === "history" ? /* @__PURE__ */ import_react2.default.createElement("small", null, disk.history.length) : data[id]?.length > 0 && /* @__PURE__ */ import_react2.default.createElement("small", null, data[id].length)
+  ))), message && /* @__PURE__ */ import_react2.default.createElement("div", { role: "status", className: "pw-message" }, message, /* @__PURE__ */ import_react2.default.createElement("button", { "aria-label": "\u5173\u95ED\u63D0\u793A", onClick: () => setMessage("") }, "\xD7")), tab === "work" ? /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", onClick: () => act(loadOriginal) }, "\u6253\u5F00\u539F Excel"), /* @__PURE__ */ import_react2.default.createElement("button", { disabled: !selected.length, onClick: resetSelection }, "\u53D6\u6D88\u5168\u9009"), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      disabled: !chosen.length,
+      onClick: () => markInquiry(chosen, true)
+    },
+    "\u9009\u4E2D\u6807\u4E3A\u5DF2\u8BE2\u4EF7"
+  ), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      disabled: !chosen.length,
+      onClick: () => markInquiry(chosen, false)
+    },
+    "\u9009\u4E2D\u6807\u4E3A\u672A\u8BE2\u4EF7"
+  ), /* @__PURE__ */ import_react2.default.createElement(
+    "select",
+    {
+      "aria-label": "\u7B5B\u9009\u8BE2\u4EF7\u72B6\u6001",
+      value: inquiryFilter,
+      onChange: (e) => {
+        setInquiryFilter(e.target.value);
+        resetSelection();
+      }
+    },
+    /* @__PURE__ */ import_react2.default.createElement("option", { value: "all" }, "\u5168\u90E8\u72B6\u6001"),
+    /* @__PURE__ */ import_react2.default.createElement("option", { value: "pending" }, "\u672A\u8BE2\u4EF7"),
+    /* @__PURE__ */ import_react2.default.createElement("option", { value: "done" }, "\u5DF2\u8BE2\u4EF7")
+  ), /* @__PURE__ */ import_react2.default.createElement(
+    "input",
+    {
+      "aria-label": "\u641C\u7D22\u91C7\u8D2D\u660E\u7EC6",
+      placeholder: "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u3001\u54C1\u540D\u6216\u578B\u53F7",
+      value: filter,
+      onChange: (e) => setFilter(e.target.value)
+    }
+  ), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      disabled: !rows.length || busy,
+      onClick: () => act(async () => {
+        download(
+          await exportBook(
+            rows.map((r) => {
+              const ss = suppliersFor(r, data.suppliers);
+              return {
+                ...r,
+                supplier: ss.map((s) => s.name).join(" / "),
+                contact: ss.map(
+                  (s) => [s.contact, s.wechat, s.phone].filter(Boolean).join(" ")
+                ).join(" / ")
+              };
+            })
+          ),
+          "\u91C7\u8D2D\u660E\u7EC6-\u6574\u7406\u7248.xlsx",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        setMessage("\u5DF2\u5BFC\u51FA\u6574\u7406\u7248 Excel\uFF1B\u5DF2\u751F\u6210\u6574\u7406\u7248\u3002");
+      })
+    },
+    "\u5BFC\u51FA\u6574\u7406\u7248"
+  )), contextMenu && /* @__PURE__ */ import_react2.default.createElement(
+    "div",
+    {
+      className: "pw-context-menu",
+      style: { left: contextMenu.x, top: contextMenu.y },
+      onMouseLeave: () => setContextMenu(null)
+    },
+    /* @__PURE__ */ import_react2.default.createElement(
+      "button",
+      {
+        onClick: () => {
+          markInquiry([contextMenu.row], true);
+          setContextMenu(null);
+        }
+      },
+      "\u6807\u4E3A\u5DF2\u8BE2\u4EF7"
+    ),
+    /* @__PURE__ */ import_react2.default.createElement(
+      "button",
+      {
+        onClick: () => {
+          markInquiry([contextMenu.row], false);
+          setContextMenu(null);
+        }
+      },
+      "\u6807\u4E3A\u672A\u8BE2\u4EF7"
+    ),
+    /* @__PURE__ */ import_react2.default.createElement(
+      "button",
+      {
+        onClick: () => {
+          resetSelection();
+          setContextMenu(null);
+        }
+      },
+      "\u53D6\u6D88\u5168\u9009"
+    )
+  ), book && /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-import" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u786E\u8BA4\u8868\u5934\u4E0E\u5217\u5BF9\u5E94\u5173\u7CFB"), /* @__PURE__ */ import_react2.default.createElement("p", null, fileName, " \xB7 \u5BFC\u5165\u5C06\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u5BFC\u5165\u660E\u7EC6\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\u3002"), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u5DE5\u4F5C\u8868", /* @__PURE__ */ import_react2.default.createElement(
+    "select",
+    {
+      value: sheet,
+      onChange: (e) => {
+        setSheet(e.target.value);
+        const found = detectHeader(
+          book.getWorksheet(e.target.value)
+        );
+        setHeader(found.headerRow);
+        setMapping(
+          Object.fromEntries(
+            Object.entries(found.mapping).filter(
+              ([k]) => k !== "price"
+            )
+          )
+        );
+      }
+    },
+    book.worksheets.map((s) => /* @__PURE__ */ import_react2.default.createElement("option", { key: s.name }, s.name))
+  )), /* @__PURE__ */ import_react2.default.createElement("label", null, "\u8868\u5934\u884C", /* @__PURE__ */ import_react2.default.createElement(
+    "input",
+    {
+      type: "number",
+      min: "1",
+      value: header,
+      onChange: (e) => {
+        const h = Math.max(1, Number(e.target.value));
+        setHeader(h);
+        autoMap(book, sheet, h);
+      }
+    }
+  )), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(fields).filter(([k]) => k !== "price").map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement(
+    "select",
+    {
+      "aria-label": `${l}\u5BF9\u5E94\u5217`,
+      value: mapping[k] || "",
+      onChange: (e) => setMapping({ ...mapping, [k]: e.target.value })
+    },
+    /* @__PURE__ */ import_react2.default.createElement("option", { value: "" }, "\u4E0D\u5BFC\u5165"),
+    Array.from(
+      {
+        length: Math.min(
+          book.getWorksheet(sheet).columnCount,
+          100
+        )
+      },
+      (_, i) => /* @__PURE__ */ import_react2.default.createElement("option", { key: i, value: i + 1 }, i + 1, " \xB7", " ", book.getWorksheet(sheet).getRow(header).getCell(i + 1).text || "\u7A7A\u8868\u5934")
+    )
+  )))), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      className: "primary",
+      onClick: () => act(() => {
+        if (!mapping.brand || !mapping.model || !mapping.quantity)
+          throw Error("\u8BF7\u81F3\u5C11\u5BF9\u5E94\u54C1\u724C\u3001\u578B\u53F7\u3001\u6570\u91CF\u5217");
+        if (new Set(
+          Object.values(mapping).filter(Boolean).map(String)
+        ).size !== Object.values(mapping).filter(Boolean).length)
+          throw Error("\u4E0D\u540C\u5B57\u6BB5\u4E0D\u80FD\u4F7F\u7528\u540C\u4E00\u5217");
+        const next = sheetRows(
+          book.getWorksheet(sheet),
+          header,
+          mapping
+        ).map((r) => ({
+          ...r,
+          sourceFile: fileName,
+          hasHistoryPrice: hasHistoryPrice(r, disk.history)
+        }));
+        const historyCount = next.filter(
+          (r) => r.hasHistoryPrice
+        ).length;
+        if (next.length > 1e4)
+          throw Error("\u660E\u7EC6\u8D85\u8FC7 10000 \u884C\uFF0C\u8BF7\u62C6\u5206\u5BFC\u5165");
+        if (rows.length && !confirm(
+          "\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\u5E76\u66FF\u6362\u5F53\u524D\u660E\u7EC6\uFF1F\u5BFC\u5165\u7684\u660E\u7EC6\u5C06\u5168\u90E8\u91CD\u7F6E\u4E3A\u672A\u8BE2\u4EF7\u3002"
+        ))
+          return;
+        setInquiryState([]);
+        disk.bindExcel(sourceExcel);
+        setRows(next);
+        setInquiryFilter("all");
+        setNotesExpanded(false);
+        resetSelection();
+        setBook(null);
+        setMessage(
+          `\u5DF2\u5BFC\u5165 ${next.length} \u884C\uFF0C\u5DF2\u5F00\u59CB\u65B0\u4E00\u8F6E\u8BE2\u4EF7\uFF0C\u5168\u90E8\u4E3A\u672A\u8BE2\u4EF7\uFF1B\u5339\u914D\u5230 ${historyCount} \u4E2A\u6709\u5386\u53F2\u6210\u4EA4\u4EF7\u7684\u7269\u6599\u7F16\u7801\u3002`
+        );
+      })
+    },
+    "\u786E\u8BA4\u5BFC\u5165"
+  ), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setBook(null) }, "\u53D6\u6D88")), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-summary" }, /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.length), " \u884C\u9700\u6C42"), /* @__PURE__ */ import_react2.default.createElement("span", null, /* @__PURE__ */ import_react2.default.createElement("strong", null, rows.filter((r) => suppliersFor(r, data.suppliers).length).length), " ", "\u884C\u6709\u5408\u4F5C\u4F9B\u8D27\u5546"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u8BE2\u4EF7 ", doneIds.size, " \u884C \xB7 \u672A\u8BE2\u4EF7 ", rows.length - doneIds.size, " ", "\u884C"), /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-summary-reminder" }, generalNotes.length > 0 && /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      className: "pw-reminder-trigger",
+      "aria-expanded": notesExpanded,
+      onClick: () => setNotesExpanded(!notesExpanded)
+    },
+    "\u26A0 \u901A\u7528\u63D0\u9192 ",
+    /* @__PURE__ */ import_react2.default.createElement("b", null, generalNotes.length)
+  )), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u5DF2\u9009 ", chosen.length, " \u884C")), /* @__PURE__ */ import_react2.default.createElement(
+    "div",
+    {
+      className: `pw-reminder-panel ${notesExpanded ? "is-open" : ""}`,
+      "aria-label": "\u901A\u7528\u6CE8\u610F\u4E8B\u9879"
+    },
+    generalNotes.length ? (notesExpanded ? generalNotes : generalNotes.slice(0, 1)).map(
+      (note, i) => /* @__PURE__ */ import_react2.default.createElement("p", { key: i }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-note-number" }, i + 1), /* @__PURE__ */ import_react2.default.createElement("span", null, note))
+    ) : null,
+    generalNotes.length > 1 && /* @__PURE__ */ import_react2.default.createElement(
+      "button",
+      {
+        className: "pw-reminder-more",
+        onClick: () => setNotesExpanded(!notesExpanded)
+      },
+      notesExpanded ? "\u6536\u8D77" : `\u5C55\u5F00\u5168\u90E8\uFF08${generalNotes.length} \u6761\uFF09`
+    )
+  ), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-grid" }, /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-sheet" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-table-scroll" }, /* @__PURE__ */ import_react2.default.createElement("table", null, /* @__PURE__ */ import_react2.default.createElement("thead", null, /* @__PURE__ */ import_react2.default.createElement("tr", null, /* @__PURE__ */ import_react2.default.createElement("th", null, /* @__PURE__ */ import_react2.default.createElement(
+    "input",
+    {
+      "aria-label": "\u9009\u62E9\u5F53\u524D\u7B5B\u9009\u7684\u5168\u90E8\u884C",
+      type: "checkbox",
+      checked: !!shown.length && shown.every((r) => selected.includes(r.id)),
+      onChange: (e) => {
+        setSelected(
+          e.target.checked ? [
+            .../* @__PURE__ */ new Set([
+              ...selected,
+              ...shown.map((r) => r.id)
+            ])
+          ] : selected.filter(
+            (id) => !shown.some((r) => r.id === id)
+          )
+        );
+        setManual("");
+      }
+    }
+  )), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u5E8F\u53F7"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u54C1\u724C / \u54C1\u540D"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u578B\u53F7"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u6570\u91CF"), /* @__PURE__ */ import_react2.default.createElement("th", null, "\u4F9B\u8D27\u5546 / \u8054\u7CFB\u65B9\u5F0F"))), /* @__PURE__ */ import_react2.default.createElement("tbody", null, shown.map((r, index) => {
+    const ss = suppliersFor(r, data.suppliers), notes = rowReminders(r, data);
+    return /* @__PURE__ */ import_react2.default.createElement(
+      "tr",
+      {
+        key: r.id,
+        onContextMenu: (e) => {
+          e.preventDefault();
+          setContextMenu({
+            x: e.clientX,
+            y: e.clientY,
+            row: r
+          });
+        },
+        className: [
+          ss.length ? "partner" : "",
+          doneIds.has(r.id) ? "pw-inquired" : ""
+        ].filter(Boolean).join(" ")
+      },
+      /* @__PURE__ */ import_react2.default.createElement("td", null, /* @__PURE__ */ import_react2.default.createElement(
+        "input",
+        {
+          "aria-label": `\u9009\u62E9 ${r.model}`,
+          type: "checkbox",
+          checked: selected.includes(r.id),
+          onChange: (e) => {
+            setSelected(
+              e.target.checked ? [...selected, r.id] : selected.filter((id) => id !== r.id)
+            );
+            setManual("");
+          }
+        }
+      )),
+      /* @__PURE__ */ import_react2.default.createElement("td", { className: "mono pw-serial" }, serialOf(r, index), notes.map((note, i) => /* @__PURE__ */ import_react2.default.createElement(
+        "span",
+        {
+          className: "pw-note-icon",
+          key: i,
+          "data-tooltip": noteLabel(note),
+          "aria-label": noteLabel(note)
+        },
+        "!"
+      )), hasHistoryPrice(r, disk.history) && /* @__PURE__ */ import_react2.default.createElement(
+        "span",
+        {
+          className: "pw-history-badge",
+          title: "\u5DF2\u6709\u5386\u53F2\u6210\u4EA4\u4EF7",
+          "aria-label": "\u5DF2\u6709\u5386\u53F2\u6210\u4EA4\u4EF7"
+        },
+        "\u5386\u53F2\u4EF7"
+      )),
+      /* @__PURE__ */ import_react2.default.createElement("td", null, /* @__PURE__ */ import_react2.default.createElement("b", null, r.brand || "\u672A\u586B\u5199\u54C1\u724C"), /* @__PURE__ */ import_react2.default.createElement("small", null, r.name), r.note && /* @__PURE__ */ import_react2.default.createElement("small", null, r.note)),
+      /* @__PURE__ */ import_react2.default.createElement("td", { className: "mono" }, r.model || "\u672A\u586B\u5199\u578B\u53F7"),
+      /* @__PURE__ */ import_react2.default.createElement("td", null, r.quantity, " ", r.unit),
+      /* @__PURE__ */ import_react2.default.createElement("td", null, ss.length ? ss.map((s, i) => /* @__PURE__ */ import_react2.default.createElement("div", { key: i }, /* @__PURE__ */ import_react2.default.createElement("b", null, s.name || s.contact || "\u5DF2\u8BB0\u5F55\u8054\u7CFB\u65B9\u5F0F"), safeUrl(s.url) && /* @__PURE__ */ import_react2.default.createElement(
+        "a",
+        {
+          href: safeUrl(s.url),
+          target: "_blank",
+          rel: "noreferrer"
+        },
+        "\u6253\u5F00\u5E97\u94FA \u2197"
+      ), s.note && /* @__PURE__ */ import_react2.default.createElement("small", null, s.note), /* @__PURE__ */ import_react2.default.createElement("small", null, [
+        s.contact,
+        s.wechat && `\u5FAE\u4FE1 ${s.wechat}`,
+        s.phone
+      ].filter(Boolean).join(" \xB7 ") || "\u5C1A\u672A\u586B\u5199\u8054\u7CFB\u65B9\u5F0F"))) : /* @__PURE__ */ import_react2.default.createElement("span", { className: "muted" }, "\u5F85\u5BFB\u627E\u6E20\u9053"))
+    );
+  })))), !!rows.length && !shown.length && /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-empty" }, "\u6CA1\u6709\u7B26\u5408\u5F53\u524D\u641C\u7D22\u548C\u8BE2\u4EF7\u72B6\u6001\u7684\u660E\u7EC6\u3002"), !rows.length && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-empty" }, /* @__PURE__ */ import_react2.default.createElement("span", null, "\u25A4"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u5148\u6253\u5F00\u4E00\u5F20\u91C7\u8D2D\u9700\u6C42\u8868"), /* @__PURE__ */ import_react2.default.createElement("p", null, "\u652F\u6301 .xls / .xlsx\uFF1B\u53EF\u9009\u62E9\u5DE5\u4F5C\u8868\u548C\u8868\u5934\u884C\u3002", /* @__PURE__ */ import_react2.default.createElement("br", null), "\u5408\u4F5C\u4F9B\u8D27\u5546\u6807\u7EFF\uFF0C\u62A5\u4EF7\u6761\u4EF6\u9010\u884C\u6838\u5BF9\u3002"))), /* @__PURE__ */ import_react2.default.createElement("aside", null, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-ticket" }, /* @__PURE__ */ import_react2.default.createElement("span", { className: "pw-label" }, "\u8BE2\u4EF7\u5355 \xB7 \u7EAF\u6587\u672C"), /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u9009\u597D\u660E\u7EC6\uFF0C\u76F4\u63A5\u590D\u5236"), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, destination.error || (destination.province ? `\u53D1\u5F80\uFF1A${destination.province}\uFF08\u6839\u636E\u516C\u53F8\u914D\u7F6E\u6216\u540D\u79F0\u8BC6\u522B\uFF09` : "\u9009\u4E2D\u660E\u7EC6\u540E\uFF0C\u6839\u636E\u9700\u6C42\u516C\u53F8\u8BC6\u522B\u53D1\u5F80\u7701\u4EFD\u3002")), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      onClick: () => {
+        const company = chosen.map(demandCompany).find((c) => c && !companyProvince(c, data.companies));
+        setTab("companies");
+        setCatalogQuery("");
+        setForm(company ? { company } : {});
+        setEdit(null);
+        setEditorOpen(!!company);
+      }
+    },
+    "\u914D\u7F6E\u516C\u53F8\u7701\u4EFD"
+  ), /* @__PURE__ */ import_react2.default.createElement(
+    "textarea",
+    {
+      "aria-label": "\u8BE2\u4EF7\u6587\u672C",
+      rows: 13,
+      value: chosen.length ? text : "",
+      placeholder: "\u52FE\u9009\u5DE6\u4FA7\u660E\u7EC6\u540E\uFF0C\u8BE2\u4EF7\u6587\u672C\u4F1A\u51FA\u73B0\u5728\u8FD9\u91CC\u3002\u53EA\u5305\u542B\u4EA7\u54C1\u9700\u6C42\uFF0C\u4E0D\u5305\u542B\u91C7\u8D2D\u5E95\u4EF7\u3002",
+      onChange: (e) => setManual(e.target.value)
+    }
+  ), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      className: "primary",
+      disabled: !chosen.length || busy,
+      onClick: () => act(copy)
+    },
+    "\u590D\u5236\u8BE2\u4EF7\u6587\u672C"
+  ), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u590D\u5236\u540E\u81EA\u884C\u7C98\u8D34\u81F3\u5FAE\u4FE1\u6216\u7535\u5546\u5BA2\u670D\u3002\u53EF\u7F16\u8F91\u6587\u5B57\uFF1B\u8C03\u6574\u9009\u4E2D\u884C\u540E\u91CD\u65B0\u751F\u6210\u3002"))))) : tab === "history" ? /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-records pw-history-manager" }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("h2", null, "\u5386\u53F2\u6210\u4EA4\u4EF7\u7269\u6599\u7F16\u7801"), /* @__PURE__ */ import_react2.default.createElement("span", { className: "muted" }, "\u5F53\u524D\u5171 ", disk.history.length, " \u4E2A\u7F16\u7801")), /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u6DFB\u52A0\u66FE\u7ECF\u6210\u4EA4\u8FC7\u7684\u7269\u6599\u7F16\u7801\u3002\u652F\u6301\u4E00\u6B21\u7C98\u8D34\u591A\u4E2A\u7F16\u7801\uFF0C\u7528\u6362\u884C\u3001\u7A7A\u683C\u3001\u9017\u53F7\u6216\u5206\u53F7\u5206\u9694\uFF0C\u4FDD\u5B58\u540E\u5199\u5165\u5F53\u524D\u8D44\u6599\u76EE\u5F55\u7684 history.json\u3002"), /* @__PURE__ */ import_react2.default.createElement(
+    "textarea",
+    {
+      "aria-label": "\u6279\u91CF\u6DFB\u52A0\u5386\u53F2\u6210\u4EA4\u4EF7\u7269\u6599\u7F16\u7801",
+      rows: 6,
+      value: historyInput,
+      onChange: (e) => setHistoryInput(e.target.value),
+      placeholder: "\u4F8B\u5982\uFF1A\\n4020006998\\n4100169304\\n\u6216\u7528\u9017\u53F7\u5206\u9694\u591A\u4E2A\u7F16\u7801"
+    }
+  ), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary", onClick: () => act(addHistoryCodes) }, "\u6279\u91CF\u6DFB\u52A0\u5E76\u4FDD\u5B58"), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setHistoryInput("") }, "\u6E05\u7A7A\u8F93\u5165")), /* @__PURE__ */ import_react2.default.createElement("label", { className: "pw-history-search" }, "\u641C\u7D22\u7269\u6599\u7F16\u7801", /* @__PURE__ */ import_react2.default.createElement(
+    "input",
+    {
+      "aria-label": "\u641C\u7D22\u5386\u53F2\u6210\u4EA4\u4EF7\u7269\u6599\u7F16\u7801",
+      value: historyQuery,
+      onChange: (e) => setHistoryQuery(e.target.value),
+      placeholder: "\u8F93\u5165\u5B8C\u6574\u6216\u90E8\u5206\u7269\u6599\u7F16\u7801"
+    }
+  )), historyQuery.trim() ? /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-history-codes" }, disk.history.filter(
+    (code) => code.toLowerCase().includes(historyQuery.trim().toLowerCase())
+  ).map((code) => /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-history-code", key: code }, /* @__PURE__ */ import_react2.default.createElement("span", null, code), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => removeHistoryCode(code) }, "\u5220\u9664"))), !disk.history.some(
+    (code) => code.toLowerCase().includes(historyQuery.trim().toLowerCase())
+  ) && /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-empty" }, "\u6CA1\u6709\u5339\u914D\u7684\u7269\u6599\u7F16\u7801\u3002")) : /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u8BF7\u8F93\u5165\u5173\u952E\u8BCD\u540E\u67E5\u770B\u5339\u914D\u7684\u7269\u6599\u7F16\u7801\u3002")) : /* @__PURE__ */ import_react2.default.createElement("section", { className: "pw-records" }, tab === "companies" && /* @__PURE__ */ import_react2.default.createElement("p", { className: "muted" }, "\u586B\u5199\u9700\u6C42\u516C\u53F8\u7684\u5B8C\u6574\u540D\u79F0\u5E76\u9009\u62E9\u53D1\u5F80\u7701\u4EFD\u3002\u914D\u7F6E\u4F18\u5148\u4E8E\u540D\u79F0\u8BC6\u522B\uFF0C\u8BF7\u6309\u5B9E\u9645\u6536\u8D27\u7701\u4EFD\u586B\u5199\uFF1B\u540C\u4E00\u516C\u53F8\u53EA\u80FD\u914D\u7F6E\u4E00\u4E2A\u7701\u4EFD\u3002"), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-toolbar" }, /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      onClick: () => {
+        setForm({});
+        setEdit(null);
+        setEditorOpen(true);
+      }
+    },
+    "\u65B0\u589E",
+    labels[tab]
+  ), /* @__PURE__ */ import_react2.default.createElement("h2", null, labels[tab], "\u8D44\u6599"), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      onClick: () => act(
+        async () => download(
+          await catalogBook(schemas[tab]),
+          `${labels[tab]}\u6A21\u677F.xlsx`
+        )
+      )
+    },
+    "\u4E0B\u8F7D Excel \u6A21\u677F"
+  ), /* @__PURE__ */ import_react2.default.createElement("label", { className: "pw-button" }, "\u5BFC\u5165 Excel / JSON", /* @__PURE__ */ import_react2.default.createElement(
+    "input",
+    {
+      type: "file",
+      accept: ".json,.xls,.xlsx",
+      onChange: (e) => act(async () => {
+        const f = e.target.files[0];
+        if (!f) return;
+        if (f.size > 20 * 1024 * 1024)
+          throw Error("\u6587\u4EF6\u8D85\u8FC7 20 MB");
+        const list = /\.xlsx?$/i.test(f.name) ? await importCatalog(
+          await f.arrayBuffer(),
+          schemas[tab]
+        ) : JSON.parse(await f.text());
+        validateData({ ...data, [tab]: list });
+        if (!confirm(`\u7528\u5BFC\u5165\u6587\u4EF6\u66FF\u6362\u5168\u90E8${labels[tab]}\u8D44\u6599\uFF1F`))
+          return;
+        changeData(tab, list);
+        setMessage(
+          `\u5DF2\u5BFC\u5165 ${list.length} \u6761${labels[tab]}\u8D44\u6599\u3002${tab === "suppliers" ? "\u4EC5\u586B\u54C1\u724C\u7684\u8BB0\u5F55\u4E0D\u4F1A\u6807\u4E3A\u5DF2\u6709\u4F9B\u8D27\u5546\u3002" : ""}`
+        );
+      })
+    }
+  )), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      onClick: () => download(
+        JSON.stringify(data[tab] || [], null, 2),
+        `${tab}.json`
+      )
+    },
+    "\u5BFC\u51FA\u8D44\u6599"
+  )), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-catalog-search" }, /* @__PURE__ */ import_react2.default.createElement(
+    "input",
+    {
+      "aria-label": `\u641C\u7D22${labels[tab]}`,
+      placeholder: tab === "suppliers" ? "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u3001\u8054\u7CFB\u4EBA\u3001\u5FAE\u4FE1\u6216\u7535\u8BDD" : tab === "companies" ? "\u641C\u7D22\u516C\u53F8\u540D\u79F0\u6216\u7701\u4EFD" : "\u641C\u7D22\u54C1\u724C\u3001\u522B\u540D\u6216\u63D0\u9192\u5185\u5BB9",
+      value: catalogQuery,
+      onChange: (e) => setCatalogQuery(e.target.value)
+    }
+  ), /* @__PURE__ */ import_react2.default.createElement("button", { onClick: () => setCatalogQuery("") }, "\u6E05\u7A7A\u641C\u7D22"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u627E\u5230 ", catalogResults.length, " / ", (data[tab] || []).length, " \u6761")), editorOpen && /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-editor-backdrop" }, /* @__PURE__ */ import_react2.default.createElement(
+    "div",
+    {
+      className: "pw-editor",
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": `${edit === null ? "\u65B0\u589E" : "\u7F16\u8F91"}${labels[tab]}`
+    },
+    /* @__PURE__ */ import_react2.default.createElement("h2", null, edit === null ? "\u65B0\u589E" : "\u7F16\u8F91", labels[tab]),
+    /* @__PURE__ */ import_react2.default.createElement(
+      "form",
+      {
+        onSubmit: (e) => {
+          e.preventDefault();
+          act(recordForm);
+        }
+      },
+      /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, tab === "companies" && k === "province" ? /* @__PURE__ */ import_react2.default.createElement(
+        "select",
+        {
+          "aria-label": l,
+          required: true,
+          value: form[k] || "",
+          onChange: (e) => setForm({ ...form, [k]: e.target.value })
+        },
+        /* @__PURE__ */ import_react2.default.createElement("option", { value: "" }, "\u8BF7\u9009\u62E9\u7701\u4EFD"),
+        provinceOptions.map((p) => /* @__PURE__ */ import_react2.default.createElement("option", { key: p }, p))
+      ) : /* @__PURE__ */ import_react2.default.createElement(
+        "input",
+        {
+          required: tab === "companies",
+          value: form[k] ?? "",
+          onChange: (e) => setForm({ ...form, [k]: e.target.value })
+        }
+      )))),
+      /* @__PURE__ */ import_react2.default.createElement("button", { className: "primary" }, edit === null ? "\u6DFB\u52A0\u8D44\u6599" : "\u4FDD\u5B58\u4FEE\u6539"),
+      /* @__PURE__ */ import_react2.default.createElement(
+        "button",
+        {
+          type: "button",
+          onClick: () => {
+            setEdit(null);
+            setForm({});
+            setEditorOpen(false);
+          }
+        },
+        "\u53D6\u6D88\u7F16\u8F91"
+      )
+    )
+  )), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-catalog-list" }, catalogResults.map(({ r, i }) => /* @__PURE__ */ import_react2.default.createElement("article", { key: r.id || i }, /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(schemas[tab]).filter(([k]) => r[k]).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("div", { key: k }, /* @__PURE__ */ import_react2.default.createElement("small", null, l), /* @__PURE__ */ import_react2.default.createElement("span", null, k === "url" && safeUrl(r[k]) ? /* @__PURE__ */ import_react2.default.createElement(
+    "a",
+    {
+      href: safeUrl(r[k]),
+      target: "_blank",
+      rel: "noreferrer"
+    },
+    "\u6253\u5F00\u5E97\u94FA \u2197"
+  ) : r[k])))), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      onClick: () => {
+        setForm(r);
+        setEdit(i);
+        setEditorOpen(true);
+      }
+    },
+    "\u7F16\u8F91"
+  ), /* @__PURE__ */ import_react2.default.createElement(
+    "button",
+    {
+      onClick: () => {
+        if (confirm("\u5220\u9664\u8FD9\u6761\u8D44\u6599\uFF1F")) {
+          changeData(
+            tab,
+            data[tab].filter((_, n) => n !== i)
+          );
+          setEdit(null);
+          setForm({});
+        }
+      }
+    },
+    "\u5220\u9664"
+  ))), !catalogResults.length && /* @__PURE__ */ import_react2.default.createElement("p", { className: "pw-empty" }, catalogQuery ? "\u6CA1\u6709\u5339\u914D\u7ED3\u679C\uFF0C\u8BF7\u8C03\u6574\u641C\u7D22\u8BCD\u3002" : "\u5C1A\u65E0\u8D44\u6599\uFF0C\u53EF\u65B0\u589E\u6216\u5BFC\u5165\u3002")))), /* @__PURE__ */ import_react2.default.createElement("footer", null, "\u91C7\u8D2D\u8868\u53EA\u8BFB\uFF0C\u4E0D\u4FEE\u6539\u539F\u6587\u4EF6\uFF1B\u4F9B\u8D27\u5546\u3001\u6CE8\u610F\u4E8B\u9879\u4E0E\u516C\u53F8\u7701\u4EFD\u5199\u5165\u6240\u9009\u76EE\u5F55\u7684 procurement-workbench.json\uFF0C\u8BE2\u4EF7\u72B6\u6001\u4EC5\u4FDD\u7559\u5728\u5F53\u524D\u4F1A\u8BDD\uFF0C\u4E0D\u751F\u6210\u81EA\u52A8\u5907\u4EFD\u3002\u6574\u7406\u7248\u4FDD\u7559\u6620\u5C04\u5B57\u6BB5\u53CA\u6709\u8868\u5934\u7684\u5176\u4ED6\u539F\u59CB\u5217\uFF0C\u4E0D\u4FDD\u7559\u539F\u8868\u6837\u5F0F\u3001\u516C\u5F0F\u548C\u5176\u4ED6\u5DE5\u4F5C\u8868\u3002"));
 }
 
 // src/preview.jsx
