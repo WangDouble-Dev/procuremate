@@ -1,5 +1,5 @@
 import {destinationFor,provinceOptions,normalizeCompany} from './destination.mjs';
-export const fields = {brand:'品牌',name:'品名',model:'型号',materialCode:'物料编码',quantity:'数量',unit:'单位',note:'备注',price:'单价',company:'需求公司'};
+export const fields = {brand:'品牌',name:'品名',model:'型号',materialCode:'物料编码',quantity:'数量',unit:'单位',note:'备注',company:'需求公司'};
 export const normalize = v => String(v ?? '').normalize('NFKC').trim().toLowerCase();
 export const clean = v => String(v ?? '').replace(/[\r\n\t]+/g,' ').trim();
 export function validDate(v) {if(!/^\d{4}-\d{2}-\d{2}$/.test(v||''))return false;const d=new Date(v+'T00:00:00Z');return !Number.isNaN(d.valueOf())&&d.toISOString().slice(0,10)===v;}

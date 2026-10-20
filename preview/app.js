@@ -47336,7 +47336,7 @@ function destinationFor(rows, companies = []) {
 var import_react2 = __toESM(require_react(), 1);
 
 // src/core.mjs
-var fields = { brand: "\u54C1\u724C", name: "\u54C1\u540D", model: "\u578B\u53F7", materialCode: "\u7269\u6599\u7F16\u7801", quantity: "\u6570\u91CF", unit: "\u5355\u4F4D", note: "\u5907\u6CE8", price: "\u5355\u4EF7", company: "\u9700\u6C42\u516C\u53F8" };
+var fields = { brand: "\u54C1\u724C", name: "\u54C1\u540D", model: "\u578B\u53F7", materialCode: "\u7269\u6599\u7F16\u7801", quantity: "\u6570\u91CF", unit: "\u5355\u4F4D", note: "\u5907\u6CE8", company: "\u9700\u6C42\u516C\u53F8" };
 var normalize = (v) => String(v ?? "").normalize("NFKC").trim().toLowerCase();
 var clean = (v) => String(v ?? "").replace(/[\r\n\t]+/g, " ").trim();
 function validDate(v) {
@@ -73841,11 +73841,13 @@ function cellText(c) {
   if (c._importText !== void 0) return c._importText;
   if (typeof v === "object") {
     if (v instanceof Date) return v.toISOString().slice(0, 10);
-    if ("formula" in v || "sharedFormula" in v) return v.result == null ? "" : String(v.result);
+    if ("formula" in v || "sharedFormula" in v)
+      return v.result == null ? "" : String(v.result);
     if (v.richText) return v.richText.map((x) => x.text).join("");
     if (v.text) return v.text;
   }
-  if (typeof v === "number" && c.numFmt && /^0+$/.test(c.numFmt)) return String(v).padStart(c.numFmt.length, "0");
+  if (typeof v === "number" && c.numFmt && /^0+$/.test(c.numFmt))
+    return String(v).padStart(c.numFmt.length, "0");
   return String(v);
 }
 async function readBook(buffer) {
@@ -73855,8 +73857,16 @@ async function readBook(buffer) {
     await b.xlsx.load(buffer);
     return b;
   }
-  if (![208, 207, 17, 224, 161, 177, 26, 225].every((v, i) => bytes[i] === v)) throw Error("\u65E0\u6CD5\u8BC6\u522B\u6587\u4EF6\u683C\u5F0F\uFF0C\u8BF7\u9009\u62E9\u6709\u6548\u7684 .xls \u6216 .xlsx \u6587\u4EF6");
-  const legacy = readSync(bytes, { type: "array", cellText: true, cellNF: true, cellDates: false });
+  if (![208, 207, 17, 224, 161, 177, 26, 225].every(
+    (v, i) => bytes[i] === v
+  ))
+    throw Error("\u65E0\u6CD5\u8BC6\u522B\u6587\u4EF6\u683C\u5F0F\uFF0C\u8BF7\u9009\u62E9\u6709\u6548\u7684 .xls \u6216 .xlsx \u6587\u4EF6");
+  const legacy = readSync(bytes, {
+    type: "array",
+    cellText: true,
+    cellNF: true,
+    cellDates: false
+  });
   for (const name of legacy.SheetNames) {
     const source = legacy.Sheets[name], s = b.addWorksheet(name);
     for (const [address, c] of Object.entries(source)) {
@@ -73866,7 +73876,8 @@ async function readBook(buffer) {
       if (c.z) target.numFmt = c.z;
       target._importText = c.w ?? String(c.v);
     }
-    for (const merge of source["!merges"] || []) s.mergeCells(merge.s.r + 1, merge.s.c + 1, merge.e.r + 1, merge.e.c + 1);
+    for (const merge of source["!merges"] || [])
+      s.mergeCells(merge.s.r + 1, merge.s.c + 1, merge.e.r + 1, merge.e.c + 1);
   }
   return b;
 }
@@ -73877,7 +73888,6 @@ var aliases = {
   quantity: ["\u6570\u91CF", "\u9700\u6C42\u6570\u91CF", "\u91C7\u8D2D\u6570\u91CF", "\u9700\u6C42\u91CF"],
   unit: ["\u5355\u4F4D", "\u8BA1\u91CF\u5355\u4F4D"],
   note: ["\u5907\u6CE8", "\u8BF4\u660E"],
-  price: ["\u5355\u4EF7", "\u91C7\u8D2D\u4EF7", "\u542B\u7A0E\u5355\u4EF7", "\u542B\u7A0E\u5355\u4EF7(\u5143)", "\u542B\u7A0E\u5355\u4EF7\uFF08\u5143\uFF09", "\u672A\u7A0E\u5355\u4EF7", "\u672A\u7A0E\u5355\u4EF7(\u5143)", "\u4E0D\u542B\u7A0E\u5355\u4EF7"],
   materialCode: ["\u7269\u6599\u7F16\u7801", "\u7269\u6599\u4EE3\u7801", "\u7269\u8D44\u7F16\u7801"],
   company: ["\u9700\u6C42\u516C\u53F8", "\u9700\u6C42\u5355\u4F4D", "\u91C7\u8D2D\u516C\u53F8"]
 };
@@ -73886,7 +73896,11 @@ function mapColumns(sheet, headerRow) {
   const mapping = {};
   sheet.getRow(headerRow).eachCell((cell, col) => {
     const text = headerKey(cellText(cell));
-    for (const [key, label] of Object.entries(fields)) if ([key, label, ...aliases[key] || []].some((a) => headerKey(a) === text) && !mapping[key]) mapping[key] = col;
+    for (const [key, label] of Object.entries(fields))
+      if ([key, label, ...aliases[key] || []].some(
+        (a) => headerKey(a) === text
+      ) && !mapping[key])
+        mapping[key] = col;
   });
   return mapping;
 }
@@ -73902,16 +73916,25 @@ function sheetRows(sheet, headerRow, mapping) {
   const out = [], mapped = new Set(Object.values(mapping).filter(Boolean).map(Number));
   const extraColumns = [];
   sheet.getRow(headerRow).eachCell((c, col) => {
-    if (!mapped.has(col) && cellText(c)) extraColumns.push({ col, header: cellText(c) });
+    if (!mapped.has(col) && cellText(c))
+      extraColumns.push({ col, header: cellText(c) });
   });
-  const priceLabel = mapping.price ? headerKey(cellText(sheet.getRow(headerRow).getCell(Number(mapping.price)))) : "";
-  const currencyBasis = /\(元\)|人民币|cny|rmb/.test(priceLabel) ? "CNY" : "";
-  const taxBasis = /未税|不含税/.test(priceLabel) ? "\u672A\u7A0E" : /含税/.test(priceLabel) ? "\u542B\u7A0E" : "";
   for (let n = headerRow + 1; n <= sheet.rowCount; n++) {
-    const r = { id: `${sheet.id}:${n}`, sourceRow: n, sourceSheet: sheet.name, taxBasis, currencyBasis };
-    for (const k of Object.keys(fields)) r[k] = mapping[k] ? cellText(k === "company" ? sheet.getRow(n).getCell(Number(mapping[k])).master : sheet.getRow(n).getCell(Number(mapping[k]))) : "";
+    const r = {
+      id: `${sheet.id}:${n}`,
+      sourceRow: n,
+      sourceSheet: sheet.name
+    };
+    for (const k of Object.keys(fields))
+      r[k] = mapping[k] ? cellText(
+        k === "company" ? sheet.getRow(n).getCell(Number(mapping[k])).master : sheet.getRow(n).getCell(Number(mapping[k]))
+      ) : "";
     if (![r.brand, r.name, r.model, r.quantity].some(Boolean)) continue;
-    r.sourceExtra = extraColumns.map(({ col, header }) => ({ col, header, value: cellText(sheet.getRow(n).getCell(col)) }));
+    r.sourceExtra = extraColumns.map(({ col, header }) => ({
+      col,
+      header,
+      value: cellText(sheet.getRow(n).getCell(col))
+    }));
     out.push(r);
   }
   return out;
@@ -73919,45 +73942,88 @@ function sheetRows(sheet, headerRow, mapping) {
 async function exportBook(rows) {
   const b = new import_exceljs.default.Workbook(), s = b.addWorksheet("\u91C7\u8D2D\u660E\u7EC6");
   const extras = /* @__PURE__ */ new Map();
-  for (const r of rows) for (const e of r.sourceExtra || []) extras.set(`${e.col}:${e.header}`, e.header);
-  const columns = [...Object.entries(fields).filter(([key]) => key !== "materialCode").map(([key, header]) => ({ key, header, width: key === "note" ? 30 : 20 })), { key: "supplier", header: "\u5408\u4F5C\u4F9B\u8D27\u5546", width: 25 }, { key: "contact", header: "\u8054\u7CFB\u65B9\u5F0F", width: 30 }, { key: "basis", header: "\u4EF7\u683C\u6761\u4EF6\u4E0E\u6765\u6E90", width: 55 }, ...Array.from(extras, ([key, header]) => ({ key: "extra:" + key, header, width: 25 }))];
-  if (rows.length && rows.every((r) => r.taxBasis === "\u542B\u7A0E")) columns.find((c) => c.key === "price").header = "\u542B\u7A0E\u5355\u4EF7";
-  if (rows.length && rows.every((r) => r.taxBasis === "\u672A\u7A0E")) columns.find((c) => c.key === "price").header = "\u672A\u7A0E\u5355\u4EF7";
+  for (const r of rows)
+    for (const e of r.sourceExtra || [])
+      extras.set(`${e.col}:${e.header}`, e.header);
+  const columns = [
+    ...Object.entries(fields).filter(([key]) => key !== "materialCode").map(([key, header]) => ({
+      key,
+      header,
+      width: key === "note" ? 30 : 20
+    })),
+    { key: "supplier", header: "\u5408\u4F5C\u4F9B\u8D27\u5546", width: 25 },
+    { key: "contact", header: "\u8054\u7CFB\u65B9\u5F0F", width: 30 },
+    ...Array.from(extras, ([key, header]) => ({
+      key: "extra:" + key,
+      header,
+      width: 25
+    }))
+  ];
   s.columns = columns;
   for (const r of rows) {
     const data = { ...r };
-    for (const e of r.sourceExtra || []) data[`extra:${e.col}:${e.header}`] = e.value;
+    for (const e of r.sourceExtra || [])
+      data[`extra:${e.col}:${e.header}`] = e.value;
     const x = s.addRow(data);
-    if (r.supplier) x.eachCell((c) => c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE6F3ED" } });
+    if (r.supplier)
+      x.eachCell(
+        (c) => c.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFE6F3ED" }
+        }
+      );
   }
   s.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-  s.getRow(1).eachCell((c) => c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF215E52" } });
+  s.getRow(1).eachCell(
+    (c) => c.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF215E52" }
+    }
+  );
   s.views = [{ state: "frozen", ySplit: 1 }];
-  s.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: columns.length } };
+  s.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: columns.length }
+  };
   return b.xlsx.writeBuffer();
 }
 async function catalogBook(schema, records = []) {
   const b = new import_exceljs.default.Workbook();
   const s = b.addWorksheet("\u8D44\u6599");
-  s.columns = Object.entries(schema).map(([key, header]) => ({ key, header, width: 25 }));
+  s.columns = Object.entries(schema).map(([key, header]) => ({
+    key,
+    header,
+    width: 25
+  }));
   for (const r of records) s.addRow(r);
   s.getRow(1).font = { bold: true };
   return b.xlsx.writeBuffer();
 }
 async function importCatalog(buffer, schema) {
-  if ("wechat" in schema && "brand" in schema) return importSuppliers(buffer, schema);
+  if ("wechat" in schema && "brand" in schema)
+    return importSuppliers(buffer, schema);
   const b = await readBook(buffer);
   const s = b.worksheets[0];
   if (!s) throw Error("\u6587\u4EF6\u6CA1\u6709\u5DE5\u4F5C\u8868");
   const mapping = {};
   s.getRow(1).eachCell((c, n) => {
-    for (const [k, label] of Object.entries(schema)) if ([k, label, ...k === "keyword" ? ["\u54C1\u540D / \u578B\u53F7 / \u5907\u6CE8\u5173\u952E\u8BCD"] : []].includes(cellText(c).trim())) mapping[k] = n;
+    for (const [k, label] of Object.entries(schema))
+      if ([
+        k,
+        label,
+        ...k === "keyword" ? ["\u54C1\u540D / \u578B\u53F7 / \u5907\u6CE8\u5173\u952E\u8BCD"] : []
+      ].includes(cellText(c).trim()))
+        mapping[k] = n;
   });
-  if (!Object.keys(mapping).length) throw Error("\u672A\u8BC6\u522B\u8868\u5934\uFF0C\u8BF7\u4E0B\u8F7D Excel \u6A21\u677F\u540E\u586B\u5199");
+  if (!Object.keys(mapping).length)
+    throw Error("\u672A\u8BC6\u522B\u8868\u5934\uFF0C\u8BF7\u4E0B\u8F7D Excel \u6A21\u677F\u540E\u586B\u5199");
   const records = [];
   for (let n = 2; n <= s.rowCount; n++) {
     const r = {};
-    for (const [k, col] of Object.entries(mapping)) r[k] = cellText(s.getRow(n).getCell(col));
+    for (const [k, col] of Object.entries(mapping))
+      r[k] = cellText(s.getRow(n).getCell(col));
     if (Object.values(r).some(Boolean)) records.push(r);
   }
   return records;
@@ -73965,13 +74031,26 @@ async function importCatalog(buffer, schema) {
 async function importSuppliers(buffer, schema) {
   const b = await readBook(buffer);
   let found;
-  const aliases2 = { brand: ["\u54C1\u724C\u540D\u79F0"], aliases: ["\u54C1\u724C\u522B\u540D", "\u522B\u540D"], name: ["\u4F9B\u5E94\u5546\u540D\u79F0", "\u4F9B\u8D27\u5546", "\u4F9B\u5E94\u5546"], contact: ["\u8054\u7CFB\u4EBA\u59D3\u540D"], wechat: ["\u5FAE\u4FE1\u53F7"], phone: ["\u8054\u7CFB\u7535\u8BDD", "\u624B\u673A\u53F7"], url: ["\u5E97\u94FA\u94FE\u63A5", "\u5E97\u94FA\u7F51\u5740", "\u7F51\u5740", "\u94FE\u63A5"], note: ["\u5907\u6CE8", "\u8BF4\u660E"] };
+  const aliases2 = {
+    brand: ["\u54C1\u724C\u540D\u79F0"],
+    aliases: ["\u54C1\u724C\u522B\u540D", "\u522B\u540D"],
+    name: ["\u4F9B\u5E94\u5546\u540D\u79F0", "\u4F9B\u8D27\u5546", "\u4F9B\u5E94\u5546"],
+    contact: ["\u8054\u7CFB\u4EBA\u59D3\u540D"],
+    wechat: ["\u5FAE\u4FE1\u53F7"],
+    phone: ["\u8054\u7CFB\u7535\u8BDD", "\u624B\u673A\u53F7"],
+    url: ["\u5E97\u94FA\u94FE\u63A5", "\u5E97\u94FA\u7F51\u5740", "\u7F51\u5740", "\u94FE\u63A5"],
+    note: ["\u5907\u6CE8", "\u8BF4\u660E"]
+  };
   for (const sheet2 of b.worksheets) {
     for (let row2 = 1; row2 <= Math.min(30, sheet2.rowCount); row2++) {
       const mapping2 = {};
       sheet2.getRow(row2).eachCell((cell, col) => {
         const h = headerKey(cellText(cell));
-        for (const [key, label] of Object.entries(schema)) if ([key, label, ...aliases2[key] || []].some((x) => headerKey(x) === h)) mapping2[key] = col;
+        for (const [key, label] of Object.entries(schema))
+          if ([key, label, ...aliases2[key] || []].some(
+            (x) => headerKey(x) === h
+          ))
+            mapping2[key] = col;
       });
       if (mapping2.brand && Object.keys(mapping2).length >= 2) {
         found = { sheet: sheet2, row: row2, mapping: mapping2 };
@@ -73980,7 +74059,8 @@ async function importSuppliers(buffer, schema) {
     }
     if (found) break;
   }
-  if (!found) throw Error("\u672A\u8BC6\u522B\u4F9B\u8D27\u5546\u8868\u5934\uFF0C\u8BF7\u5305\u542B\u54C1\u724C\u3001\u4F9B\u8D27\u5546\u540D\u79F0\u6216\u8054\u7CFB\u4EBA\u7B49\u5217");
+  if (!found)
+    throw Error("\u672A\u8BC6\u522B\u4F9B\u8D27\u5546\u8868\u5934\uFF0C\u8BF7\u5305\u542B\u54C1\u724C\u3001\u4F9B\u8D27\u5546\u540D\u79F0\u6216\u8054\u7CFB\u4EBA\u7B49\u5217");
   const { sheet, row, mapping } = found, records = [];
   for (let n = row + 1; n <= sheet.rowCount; n++) {
     const r = {};
@@ -74001,36 +74081,49 @@ async function importSuppliers(buffer, schema) {
       const link = cell.hyperlink || (v && typeof v === "object" ? v.hyperlink : null);
       if (link && safeUrl(link)) links.add(link);
     }
-    if (links.size > 1) throw Error(`\u4F9B\u8D27\u5546\u8868\u7B2C ${n} \u884C\u5305\u542B\u591A\u4E2A\u4E0D\u540C\u94FE\u63A5\uFF0C\u8BF7\u62C6\u6210\u591A\u6761\u4F9B\u8D27\u5546\u8BB0\u5F55`);
+    if (links.size > 1)
+      throw Error(`\u4F9B\u8D27\u5546\u8868\u7B2C ${n} \u884C\u5305\u542B\u591A\u4E2A\u4E0D\u540C\u94FE\u63A5\uFF0C\u8BF7\u62C6\u6210\u591A\u6761\u4F9B\u8D27\u5546\u8BB0\u5F55`);
     if (links.size) r.url = [...links][0];
     records.push(r);
   }
   const owners = /* @__PURE__ */ new Map();
-  for (const r of records) for (const a of r.aliases.split("|").filter(Boolean)) {
-    const key = normalize(a);
-    if (!owners.has(key)) owners.set(key, /* @__PURE__ */ new Set());
-    owners.get(key).add(r.brand);
-  }
+  for (const r of records)
+    for (const a of r.aliases.split("|").filter(Boolean)) {
+      const key = normalize(a);
+      if (!owners.has(key)) owners.set(key, /* @__PURE__ */ new Set());
+      owners.get(key).add(r.brand);
+    }
   for (const r of records) {
     const candidates = owners.get(normalize(r.brand));
     if (candidates?.size === 1) {
       const owner = [...candidates][0];
-      if (normalize(owner) !== normalize(r.brand) && !owners.has(normalize(owner))) r.brand = owner;
+      if (normalize(owner) !== normalize(r.brand) && !owners.has(normalize(owner)))
+        r.brand = owner;
     }
   }
   const unique = /* @__PURE__ */ new Map();
   for (const r of records) {
-    const key = JSON.stringify(Object.keys(schema).map((k) => k === "aliases" ? "" : k === "brand" ? normalize(r[k]) : String(r[k] || "").trim()));
+    const key = JSON.stringify(
+      Object.keys(schema).map(
+        (k) => k === "aliases" ? "" : k === "brand" ? normalize(r[k]) : String(r[k] || "").trim()
+      )
+    );
     if (unique.has(key)) {
       const prior = unique.get(key);
-      prior.aliases = [...new Set([...prior.aliases.split("|"), ...r.aliases.split("|")].filter(Boolean))].join("|");
+      prior.aliases = [
+        ...new Set(
+          [...prior.aliases.split("|"), ...r.aliases.split("|")].filter(
+            Boolean
+          )
+        )
+      ].join("|");
     } else unique.set(key, r);
   }
   return [...unique.values()];
 }
 
 // src/style.css
-var style_default = `.pw{--ink:#223831;--green:#216452;--line:#dbe4df;--paper:#f4f7f5;--muted:#6b7c74;color:var(--ink);background:var(--paper);font:14px/1.55 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;min-height:100%;height:100%;overflow:auto;padding:32px;box-sizing:border-box}.pw *{box-sizing:border-box}.pw h1{font-family:'PingFang SC',sans-serif;font-weight:650;font-size:29px;letter-spacing:2px;margin:5px 0}.pw h2{font-size:18px;margin:8px 0 16px}.pw h3{font-size:14px;margin:8px 0}.pw p{margin:8px 0 14px}.pw small{display:block;font-size:12px;color:var(--muted)}.pw .pw-label{font:11px/1.5 ui-monospace,monospace;letter-spacing:2px;color:var(--green)}.pw-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:25px}.pw-actions,.pw-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pw button,.pw-button{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:1px solid var(--line);border-radius:7px;background:white;padding:7px 13px;font:inherit;color:var(--ink);cursor:pointer;white-space:nowrap}.pw button:hover,.pw-button:hover{border-color:var(--green);background:#edf4ef}.pw button:disabled{opacity:.45;cursor:not-allowed}.pw .primary{background:var(--green);color:#fff;border-color:var(--green)}.pw .primary:hover{background:#184c3e}.pw label.pw-button input[type=file]{display:none}.pw input,.pw textarea,.pw select{border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);padding:8px;font:inherit;max-width:100%;min-width:0}.pw input[type=checkbox]{accent-color:var(--green);width:16px;height:16px}.pw input:focus-visible,.pw textarea:focus-visible,.pw select:focus-visible,.pw button:focus-visible,.pw a:focus-visible{outline:2px solid #438475;outline-offset:2px}.pw nav{display:flex;gap:8px;border-bottom:1px solid var(--line);margin-bottom:24px;overflow:auto}.pw nav button{border:0;background:transparent;border-radius:0;padding:12px 17px;border-bottom:3px solid transparent}.pw nav button.active{border-bottom-color:var(--green);color:var(--green);font-weight:650}.pw nav small{margin-left:8px}.pw-summary{display:flex;gap:28px;align-items:center;padding:20px 0}.pw-summary strong{font:22px ui-monospace,monospace;color:var(--green)}.pw-summary span:last-child{margin-left:auto;color:var(--muted)}.pw-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}.pw-sheet{background:white;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:370px}.pw-table-scroll{overflow:auto;max-height:65vh}.pw table{border-collapse:collapse;width:100%;text-align:left;white-space:normal}.pw th{background:#eef3ef;color:var(--muted);font-weight:500;white-space:nowrap;position:sticky;top:0;z-index:1}.pw td,.pw th{padding:13px 11px;border-bottom:1px solid #e8eee9;vertical-align:top}.pw td{min-width:92px}.pw td:first-child{min-width:35px}.pw tr.partner{background:#f0f8f3}.pw tr.partner td:nth-child(2){border-left:3px solid #68a086}.pw .mono{font-family:ui-monospace,monospace;font-size:13px}.pw .pw-price{width:85px;padding:5px}.pw .pw-ticket{background:#fff;border:1px solid var(--line);border-top:4px solid var(--green);padding:20px;border-radius:4px 4px 10px 10px;box-shadow:0 5px 18px #153c2610}.pw label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}.pw-ticket textarea{width:100%;margin:14px 0;font-size:13px;resize:vertical;line-height:1.8;background:#fcfdfb}.pw-ticket button{width:100%}.pw-ticket p{font-size:12px;margin-bottom:0}.pw-notes{padding:15px 4px;border-bottom:1px solid var(--line)}.pw .muted{color:var(--muted);font-size:12px}.pw-alert{background:#fff1cc;border-left:3px solid #c9921b;padding:10px;font-size:13px}.pw a{color:var(--green);text-decoration:underline;text-underline-offset:3px}.pw-links{display:flex;flex-wrap:wrap;gap:9px;font-size:12px}.pw-empty{text-align:center;padding:55px 20px;color:var(--muted)}.pw-empty>span{font-size:44px;color:#8aab97}.pw-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:14px 0 20px}.pw-import,.pw-records{padding:24px;background:white;border:1px solid var(--line);border-radius:10px;margin-top:18px}.pw-import>label{display:inline-flex;margin-right:16px}.pw-records article{padding:20px 0;border-top:1px solid var(--line);margin-top:20px}.pw-records article button{margin-right:8px}.pw-records form{padding-bottom:20px}.pw-records pre{white-space:pre-wrap;word-break:break-word;background:var(--paper);padding:15px;font:13px/1.8 ui-monospace,monospace}.pw-message{background:#e4f0e9;border:1px solid #b5d0bf;border-radius:6px;padding:10px 14px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}.pw-message button{padding:0 8px;min-height:24px;background:transparent}.pw footer{color:var(--muted);font-size:11px;margin-top:28px}.pw .pw-toolbar h2{margin:0 auto 0 0}@media(max-width:1100px){.pw{padding:20px}.pw-grid{grid-template-columns:minmax(0,1fr)}.pw-grid aside{display:block}}@media(max-width:650px){.pw{padding:12px}.pw-head{display:block}.pw-actions{margin-top:16px}.pw-summary{gap:10px;flex-wrap:wrap}.pw-summary span:last-child{margin:0}.pw-grid aside{display:block}.pw-toolbar>input{width:100%}.pw h1{font-size:25px}}
+var style_default = `.pw{--ink:#223831;--green:#216452;--line:#dbe4df;--paper:#f4f7f5;--muted:#6b7c74;color:var(--ink);background:var(--paper);font:14px/1.55 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;min-height:100%;height:100%;overflow:auto;padding:32px;box-sizing:border-box}.pw *{box-sizing:border-box}.pw h1{font-family:'PingFang SC',sans-serif;font-weight:650;font-size:29px;letter-spacing:2px;margin:5px 0}.pw h2{font-size:18px;margin:8px 0 16px}.pw h3{font-size:14px;margin:8px 0}.pw p{margin:8px 0 14px}.pw small{display:block;font-size:12px;color:var(--muted)}.pw .pw-label{font:11px/1.5 ui-monospace,monospace;letter-spacing:2px;color:var(--green)}.pw-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:25px}.pw-actions,.pw-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pw button,.pw-button{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:1px solid var(--line);border-radius:7px;background:white;padding:7px 13px;font:inherit;color:var(--ink);cursor:pointer;white-space:nowrap}.pw button:hover,.pw-button:hover{border-color:var(--green);background:#edf4ef}.pw button:disabled{opacity:.45;cursor:not-allowed}.pw .primary{background:var(--green);color:#fff;border-color:var(--green)}.pw .primary:hover{background:#184c3e}.pw label.pw-button input[type=file]{display:none}.pw input,.pw textarea,.pw select{border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);padding:8px;font:inherit;max-width:100%;min-width:0}.pw input[type=checkbox]{accent-color:var(--green);width:16px;height:16px}.pw input:focus-visible,.pw textarea:focus-visible,.pw select:focus-visible,.pw button:focus-visible,.pw a:focus-visible{outline:2px solid #438475;outline-offset:2px}.pw nav{display:flex;gap:8px;border-bottom:1px solid var(--line);margin-bottom:24px;overflow:auto}.pw nav button{border:0;background:transparent;border-radius:0;padding:12px 17px;border-bottom:3px solid transparent}.pw nav button.active{border-bottom-color:var(--green);color:var(--green);font-weight:650}.pw nav small{margin-left:8px}.pw-summary{display:flex;gap:28px;align-items:center;padding:20px 0}.pw-summary strong{font:22px ui-monospace,monospace;color:var(--green)}.pw-summary span:last-child{margin-left:auto;color:var(--muted)}.pw-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}.pw-sheet{background:white;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:370px}.pw-table-scroll{overflow:auto;max-height:65vh}.pw table{border-collapse:collapse;width:100%;text-align:left;white-space:normal}.pw th{background:#eef3ef;color:var(--muted);font-weight:500;white-space:nowrap;position:sticky;top:0;z-index:1}.pw td,.pw th{padding:13px 11px;border-bottom:1px solid #e8eee9;vertical-align:top}.pw td{min-width:92px}.pw td:first-child{min-width:35px}.pw tr.partner{background:#f0f8f3}.pw tr.partner td:nth-child(2){border-left:3px solid #68a086}.pw .mono{font-family:ui-monospace,monospace;font-size:13px}.pw .pw-ticket{background:#fff;border:1px solid var(--line);border-top:4px solid var(--green);padding:20px;border-radius:4px 4px 10px 10px;box-shadow:0 5px 18px #153c2610}.pw label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}.pw-ticket textarea{width:100%;margin:14px 0;font-size:13px;resize:vertical;line-height:1.8;background:#fcfdfb}.pw-ticket button{width:100%}.pw-ticket p{font-size:12px;margin-bottom:0}.pw-notes{padding:15px 4px;border-bottom:1px solid var(--line)}.pw .muted{color:var(--muted);font-size:12px}.pw-alert{background:#fff1cc;border-left:3px solid #c9921b;padding:10px;font-size:13px}.pw a{color:var(--green);text-decoration:underline;text-underline-offset:3px}.pw-links{display:flex;flex-wrap:wrap;gap:9px;font-size:12px}.pw-empty{text-align:center;padding:55px 20px;color:var(--muted)}.pw-empty>span{font-size:44px;color:#8aab97}.pw-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:14px 0 20px}.pw-import,.pw-records{padding:24px;background:white;border:1px solid var(--line);border-radius:10px;margin-top:18px}.pw-import>label{display:inline-flex;margin-right:16px}.pw-records article{padding:20px 0;border-top:1px solid var(--line);margin-top:20px}.pw-records article button{margin-right:8px}.pw-records form{padding-bottom:20px}.pw-records pre{white-space:pre-wrap;word-break:break-word;background:var(--paper);padding:15px;font:13px/1.8 ui-monospace,monospace}.pw-message{background:#e4f0e9;border:1px solid #b5d0bf;border-radius:6px;padding:10px 14px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}.pw-message button{padding:0 8px;min-height:24px;background:transparent}.pw footer{color:var(--muted);font-size:11px;margin-top:28px}.pw .pw-toolbar h2{margin:0 auto 0 0}@media(max-width:1100px){.pw{padding:20px}.pw-grid{grid-template-columns:minmax(0,1fr)}.pw-grid aside{display:block}}@media(max-width:650px){.pw{padding:12px}.pw-head{display:block}.pw-actions{margin-top:16px}.pw-summary{gap:10px;flex-wrap:wrap}.pw-summary span:last-child{margin:0}.pw-grid aside{display:block}.pw-toolbar>input{width:100%}.pw h1{font-size:25px}}
 
 .pw .pw-content{padding:0;margin:0;border:0;min-width:0}.pw-storage-status{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:12px;overflow-wrap:anywhere}.pw-import input[aria-label="\u8D44\u6599\u5B58\u50A8\u76EE\u5F55"]{width:min(720px,75vw)}
 
@@ -74380,9 +74473,7 @@ function App() {
   function autoMap(b, s, h) {
     setMapping(
       Object.fromEntries(
-        Object.entries(mapColumns(b.getWorksheet(s), h)).filter(
-          ([k]) => k !== "price"
-        )
+        Object.entries(mapColumns(b.getWorksheet(s), h))
       )
     );
   }
@@ -74399,7 +74490,7 @@ function App() {
     setHeader(detected.headerRow);
     setMapping(
       Object.fromEntries(
-        Object.entries(detected.mapping).filter(([k]) => k !== "price")
+        Object.entries(detected.mapping)
       )
     );
   }
@@ -74652,9 +74743,7 @@ function App() {
         setHeader(found.headerRow);
         setMapping(
           Object.fromEntries(
-            Object.entries(found.mapping).filter(
-              ([k]) => k !== "price"
-            )
+            Object.entries(found.mapping)
           )
         );
       }
@@ -74672,7 +74761,7 @@ function App() {
         autoMap(book, sheet, h);
       }
     }
-  )), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(fields).filter(([k]) => k !== "price").map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement(
+  )), /* @__PURE__ */ import_react2.default.createElement("div", { className: "pw-fields" }, Object.entries(fields).map(([k, l]) => /* @__PURE__ */ import_react2.default.createElement("label", { key: k }, l, /* @__PURE__ */ import_react2.default.createElement(
     "select",
     {
       "aria-label": `${l}\u5BF9\u5E94\u5217`,

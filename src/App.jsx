@@ -208,9 +208,7 @@ export default function App() {
     function autoMap(b, s, h) {
         setMapping(
             Object.fromEntries(
-                Object.entries(mapColumns(b.getWorksheet(s), h)).filter(
-                    ([k]) => k !== "price",
-                ),
+                Object.entries(mapColumns(b.getWorksheet(s), h)),
             ),
         );
     }
@@ -227,7 +225,7 @@ export default function App() {
         setHeader(detected.headerRow);
         setMapping(
             Object.fromEntries(
-                Object.entries(detected.mapping).filter(([k]) => k !== "price"),
+                Object.entries(detected.mapping),
             ),
         );
     }
@@ -565,9 +563,7 @@ export default function App() {
                                             setHeader(found.headerRow);
                                             setMapping(
                                                 Object.fromEntries(
-                                                    Object.entries(found.mapping).filter(
-                                                        ([k]) => k !== "price",
-                                                    ),
+                                                    Object.entries(found.mapping),
                                                 ),
                                             );
                                         }}
@@ -591,9 +587,7 @@ export default function App() {
                                     />
                                 </label>
                                 <div className="pw-fields">
-                                    {Object.entries(fields)
-                                        .filter(([k]) => k !== "price")
-                                        .map(([k, l]) => (
+                                    {Object.entries(fields).map(([k, l]) => (
                                             <label key={k}>
                                                 {l}
                                                 <select
