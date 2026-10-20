@@ -74148,7 +74148,12 @@ var style_default = `.pw{--ink:#223831;--green:#216452;--line:#dbe4df;--paper:#f
 
 // src/useDiskState.jsx
 var import_react = __toESM(require_react(), 1);
-var EMPTY = () => ({ version: 1, data: emptyData(), history: emptyHistory(), rows: [] });
+var EMPTY = () => ({
+  version: 1,
+  data: emptyData(),
+  history: emptyHistory(),
+  rows: []
+});
 var queue = Promise.resolve();
 function enqueue(fn) {
   const task = queue.catch(() => {
@@ -74159,17 +74164,28 @@ function enqueue(fn) {
 async function request(method = "GET", body) {
   const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 3e4);
   try {
-    const response = await fetch("/procurement-workbench/api", { method, signal: controller.signal, headers: { "X-Procurement-Workbench": "1", ...body ? { "Content-Type": "application/json" } : {} }, ...body ? { body: JSON.stringify(body) } : {} });
+    const response = await fetch("/procurement-workbench/api", {
+      method,
+      signal: controller.signal,
+      headers: {
+        "X-Procurement-Workbench": "1",
+        ...body ? { "Content-Type": "application/json" } : {}
+      },
+      ...body ? { body: JSON.stringify(body) } : {}
+    });
     let value;
     try {
       value = await response.json();
     } catch {
-      throw Error("\u65E0\u6CD5\u8FDE\u63A5\u8D44\u6599\u5B58\u50A8\u670D\u52A1\u3002\u8BF7\u5B89\u88C5\u65B0\u7248\u63D2\u4EF6\u5E76\u91CD\u542F\uFF0C\u6216\u542F\u52A8\u65B0\u7248\u9884\u89C8\u670D\u52A1\u3002");
+      throw Error(
+        "\u65E0\u6CD5\u8FDE\u63A5\u8D44\u6599\u5B58\u50A8\u670D\u52A1\u3002\u8BF7\u5B89\u88C5\u65B0\u7248\u63D2\u4EF6\u5E76\u91CD\u542F\uFF0C\u6216\u542F\u52A8\u65B0\u7248\u9884\u89C8\u670D\u52A1\u3002"
+      );
     }
     if (!response.ok) throw Error(value.error || "\u4FDD\u5B58\u5931\u8D25");
     return value;
   } catch (e) {
-    if (e.name === "AbortError") throw Error("\u8D44\u6599\u670D\u52A1\u54CD\u5E94\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u6587\u4EF6\u6743\u9650\u6216\u4FDD\u5B58\u76EE\u5F55\u540E\u91CD\u8BD5\u3002");
+    if (e.name === "AbortError")
+      throw Error("\u8D44\u6599\u670D\u52A1\u54CD\u5E94\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u6587\u4EF6\u6743\u9650\u6216\u4FDD\u5B58\u76EE\u5F55\u540E\u91CD\u8BD5\u3002");
     throw e;
   } finally {
     clearTimeout(timer);
@@ -74184,8 +74200,17 @@ function useDiskState() {
   const revision = (0, import_react.useRef)(""), baseline = (0, import_react.useRef)(""), failed = (0, import_react.useRef)(false), mounted = (0, import_react.useRef)(true), pending = (0, import_react.useRef)(0), loading = (0, import_react.useRef)(false);
   function accept(value) {
     revision.current = value.revision;
-    const payload2 = { version: 1, data: value.payload.data, history: value.history || emptyHistory(), rows: latest.current.rows || [] };
-    baseline.current = JSON.stringify({ version: 1, data: payload2.data, history: payload2.history });
+    const payload2 = {
+      version: 1,
+      data: value.payload.data,
+      history: value.history || emptyHistory(),
+      rows: latest.current.rows || []
+    };
+    baseline.current = JSON.stringify({
+      version: 1,
+      data: payload2.data,
+      history: payload2.history
+    });
     setPayload(payload2);
     latest.current = payload2;
     setInfo(value);
@@ -74221,9 +74246,16 @@ function useDiskState() {
   }, []);
   (0, import_react.useEffect)(() => {
     if (!ready || loading.current) return;
-    const serialized = JSON.stringify({ version: 1, data: payload.data, history: payload.history });
+    const serialized = JSON.stringify({
+      version: 1,
+      data: payload.data,
+      history: payload.history
+    });
     if (serialized === baseline.current) {
-      if (!pending.current && !failed.current) setStatus(info?.exists ? "\u5DF2\u4FDD\u5B58\u5230\u6587\u4EF6" : "\u5C1A\u65E0\u6570\u636E\uFF0C\u9996\u6B21\u4FEE\u6539\u540E\u5199\u5165\u6587\u4EF6");
+      if (!pending.current && !failed.current)
+        setStatus(
+          info?.exists ? "\u5DF2\u4FDD\u5B58\u5230\u6587\u4EF6" : "\u5C1A\u65E0\u6570\u636E\uFF0C\u9996\u6B21\u4FEE\u6539\u540E\u5199\u5165\u6587\u4EF6"
+        );
       return;
     }
     const version2 = editVersion.current;
@@ -74233,21 +74265,29 @@ function useDiskState() {
     enqueue(async () => {
       if (failed.current || version2 !== editVersion.current) return;
       try {
-        const value = await request("PUT", { revision: revision.current, payload: { version: 1, data: payload.data }, history: payload.history });
+        const value = await request("PUT", {
+          revision: revision.current,
+          payload: { version: 1, data: payload.data },
+          history: payload.history
+        });
         revision.current = value.revision;
         if (mounted.current) setInfo(value);
       } catch (e) {
         failed.current = true;
         throw e;
       }
-    }).then(() => {
-      if (mounted.current && !failed.current && pending.current === 1 && editVersion.current === version2) setStatus("\u5DF2\u4FDD\u5B58\u5230\u6587\u4EF6");
-    }, (e) => {
-      if (mounted.current) {
-        setError(e.message);
-        setStatus("\u4FDD\u5B58\u5931\u8D25\uFF0C\u5F53\u524D\u4FEE\u6539\u672A\u786E\u8BA4\u5199\u5165\u6587\u4EF6");
+    }).then(
+      () => {
+        if (mounted.current && !failed.current && pending.current === 1 && editVersion.current === version2)
+          setStatus("\u5DF2\u4FDD\u5B58\u5230\u6587\u4EF6");
+      },
+      (e) => {
+        if (mounted.current) {
+          setError(e.message);
+          setStatus("\u4FDD\u5B58\u5931\u8D25\uFF0C\u5F53\u524D\u4FEE\u6539\u672A\u786E\u8BA4\u5199\u5165\u6587\u4EF6");
+        }
       }
-    }).finally(() => pending.current--);
+    ).finally(() => pending.current--);
   }, [payload, ready]);
   (0, import_react.useEffect)(() => {
     const warn = (e) => {
@@ -74271,12 +74311,23 @@ function useDiskState() {
         let expected = revision.current;
         if (overwrite) {
           const current = await request();
-          if (current.directory !== info?.directory) throw Error("\u8D44\u6599\u76EE\u5F55\u5DF2\u88AB\u5176\u4ED6\u7A97\u53E3\u5207\u6362\uFF0C\u8BF7\u5207\u56DE\u539F\u76EE\u5F55\u540E\u91CD\u8BD5\uFF1B\u5F53\u524D\u4FEE\u6539\u4ECD\u4FDD\u7559\u3002");
+          if (current.directory !== info?.directory)
+            throw Error(
+              "\u8D44\u6599\u76EE\u5F55\u5DF2\u88AB\u5176\u4ED6\u7A97\u53E3\u5207\u6362\uFF0C\u8BF7\u5207\u56DE\u539F\u76EE\u5F55\u540E\u91CD\u8BD5\uFF1B\u5F53\u524D\u4FEE\u6539\u4ECD\u4FDD\u7559\u3002"
+            );
           expected = current.revision;
         }
-        const value = await request("PUT", { revision: expected, payload: next, history: nextHistory });
+        const value = await request("PUT", {
+          revision: expected,
+          payload: next,
+          history: nextHistory
+        });
         baseline.current = JSON.stringify({ ...next, history: nextHistory });
-        latest.current = { ...latest.current, data: next.data, history: nextHistory };
+        latest.current = {
+          ...latest.current,
+          data: next.data,
+          history: nextHistory
+        };
         setPayload((p) => ({ ...p, data: next.data, history: nextHistory }));
         revision.current = value.revision;
         setInfo(value);
@@ -74294,7 +74345,10 @@ function useDiskState() {
   }
   async function openExcel() {
     const service = await request();
-    if (!service.capabilities?.openExcel) throw Error("\u5F53\u524D\u9875\u9762\u8FDE\u63A5\u7684\u662F\u65E7\u7248\u4FDD\u5B58\u670D\u52A1\uFF0C\u4E0D\u652F\u6301\u6253\u5F00\u539F Excel\u3002\u8BF7\u5B89\u88C5\u65B0\u7248\u63D2\u4EF6\uFF0C\u5B8C\u5168\u9000\u51FA\u5E76\u91CD\u65B0\u6253\u5F00 DeepSeek Harness\uFF1B\u9884\u89C8\u9875\u9762\u5219\u9700\u91CD\u542F\u9884\u89C8\u670D\u52A1\u3002\u65E0\u9700\u5207\u6362\u8D44\u6599\u76EE\u5F55\u3002");
+    if (!service.capabilities?.openExcel)
+      throw Error(
+        "\u5F53\u524D\u9875\u9762\u8FDE\u63A5\u7684\u662F\u65E7\u7248\u4FDD\u5B58\u670D\u52A1\uFF0C\u4E0D\u652F\u6301\u6253\u5F00\u539F Excel\u3002\u8BF7\u5B89\u88C5\u65B0\u7248\u63D2\u4EF6\uFF0C\u5B8C\u5168\u9000\u51FA\u5E76\u91CD\u65B0\u6253\u5F00 DeepSeek Harness\uFF1B\u9884\u89C8\u9875\u9762\u5219\u9700\u91CD\u542F\u9884\u89C8\u670D\u52A1\u3002\u65E0\u9700\u5207\u6362\u8D44\u6599\u76EE\u5F55\u3002"
+      );
     const value = await request("POST", { action: "openExcel" });
     return value;
   }
@@ -74305,15 +74359,40 @@ function useDiskState() {
     await queue.catch(() => {
     });
     if (failed.current) throw Error("\u8BF7\u5148\u5904\u7406\u4FDD\u5B58\u5931\u8D25\uFF0C\u518D\u5207\u6362\u76EE\u5F55\u3002");
-    const value = await enqueue(() => request("POST", { directory, mode, revision: revision.current }));
+    const value = await enqueue(
+      () => request("POST", { directory, mode, revision: revision.current })
+    );
     accept(value);
   }
   const setter = (key) => (value) => {
     editVersion.current++;
     setStatus("\u6B63\u5728\u4FDD\u5B58");
-    setPayload((p) => ({ ...p, [key]: typeof value === "function" ? value(p[key]) : value }));
+    setPayload((p) => ({
+      ...p,
+      [key]: typeof value === "function" ? value(p[key]) : value
+    }));
   };
-  return { openExcel, bindExcel, excelStatus, data: payload.data, history: payload.history, rows: payload.rows, saveCurrent, setData: setter("data"), setHistory: setter("history"), setRows: (value) => setPayload((p) => ({ ...p, rows: typeof value === "function" ? value(p.rows) : value })), ready, status, error, info, reload, changeDirectory };
+  return {
+    openExcel,
+    bindExcel,
+    excelStatus,
+    data: payload.data,
+    history: payload.history,
+    rows: payload.rows,
+    saveCurrent,
+    setData: setter("data"),
+    setHistory: setter("history"),
+    setRows: (value) => setPayload((p) => ({
+      ...p,
+      rows: typeof value === "function" ? value(p.rows) : value
+    })),
+    ready,
+    status,
+    error,
+    info,
+    reload,
+    changeDirectory
+  };
 }
 
 // src/App.jsx
