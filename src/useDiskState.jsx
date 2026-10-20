@@ -4,9 +4,12 @@ const EMPTY=()=>({version:1,data:emptyData(),history:emptyHistory(),rows:[]});
 let queue=Promise.resolve();
 function enqueue(fn){const task=queue.catch(()=>{}).then(fn);queue=task;return task;}
 async function request(method='GET',body){
- const response=await fetch('/procurement-workbench/api',{method,headers:{'X-Procurement-Workbench':'1',...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});
- let value;try{value=await response.json();}catch{throw Error('无法连接资料存储服务。请安装新版插件并重启，或启动新版预览服务。');}
- if(!response.ok)throw Error(value.error||'保存失败');return value;
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
+ try{
+  const response=await fetch('/procurement-workbench/api',{method,signal:controller.signal,headers:{'X-Procurement-Workbench':'1',...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});
+  let value;try{value=await response.json();}catch{throw Error('无法连接资料存储服务。请安装新版插件并重启，或启动新版预览服务。');}
+  if(!response.ok)throw Error(value.error||'保存失败');return value;
+ }catch(e){if(e.name==='AbortError')throw Error('资料服务响应超时，请检查文件权限或保存目录后重试。');throw e;}finally{clearTimeout(timer);}
 }
 export function useDiskState(){
  const [payload,setPayload]=useState(EMPTY),[info,setInfo]=useState(null),[ready,setReady]=useState(false),[status,setStatus]=useState('正在读取'),[error,setError]=useState('');
@@ -25,7 +28,7 @@ export function useDiskState(){
   const serialized=JSON.stringify({version:1,data:payload.data,history:payload.history});if(serialized===baseline.current){if(!pending.current&&!failed.current)setStatus(info?.exists?'已保存到文件':'尚无数据，首次修改后写入文件');return;}
   const version=editVersion.current;baseline.current=serialized;pending.current++;setStatus('正在保存');
   enqueue(async()=>{
-   if(failed.current)return;
+   if(failed.current||version!==editVersion.current)return;
    try{const value=await request('PUT',{revision:revision.current,payload:{version:1,data:payload.data},history:payload.history});revision.current=value.revision;if(mounted.current)setInfo(value);}catch(e){failed.current=true;throw e;}
   }).then(()=>{if(mounted.current&&!failed.current&&pending.current===1&&editVersion.current===version)setStatus('已保存到文件');},e=>{if(mounted.current){setError(e.message);setStatus('保存失败，当前修改未确认写入文件');}}).finally(()=>pending.current--);
  },[payload,ready]);

@@ -74064,15 +74064,23 @@ function enqueue(fn) {
   return task;
 }
 async function request(method = "GET", body) {
-  const response = await fetch("/procurement-workbench/api", { method, headers: { "X-Procurement-Workbench": "1", ...body ? { "Content-Type": "application/json" } : {} }, ...body ? { body: JSON.stringify(body) } : {} });
-  let value;
+  const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 3e4);
   try {
-    value = await response.json();
-  } catch {
-    throw Error("\u65E0\u6CD5\u8FDE\u63A5\u8D44\u6599\u5B58\u50A8\u670D\u52A1\u3002\u8BF7\u5B89\u88C5\u65B0\u7248\u63D2\u4EF6\u5E76\u91CD\u542F\uFF0C\u6216\u542F\u52A8\u65B0\u7248\u9884\u89C8\u670D\u52A1\u3002");
+    const response = await fetch("/procurement-workbench/api", { method, signal: controller.signal, headers: { "X-Procurement-Workbench": "1", ...body ? { "Content-Type": "application/json" } : {} }, ...body ? { body: JSON.stringify(body) } : {} });
+    let value;
+    try {
+      value = await response.json();
+    } catch {
+      throw Error("\u65E0\u6CD5\u8FDE\u63A5\u8D44\u6599\u5B58\u50A8\u670D\u52A1\u3002\u8BF7\u5B89\u88C5\u65B0\u7248\u63D2\u4EF6\u5E76\u91CD\u542F\uFF0C\u6216\u542F\u52A8\u65B0\u7248\u9884\u89C8\u670D\u52A1\u3002");
+    }
+    if (!response.ok) throw Error(value.error || "\u4FDD\u5B58\u5931\u8D25");
+    return value;
+  } catch (e) {
+    if (e.name === "AbortError") throw Error("\u8D44\u6599\u670D\u52A1\u54CD\u5E94\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u6587\u4EF6\u6743\u9650\u6216\u4FDD\u5B58\u76EE\u5F55\u540E\u91CD\u8BD5\u3002");
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
-  if (!response.ok) throw Error(value.error || "\u4FDD\u5B58\u5931\u8D25");
-  return value;
 }
 function useDiskState() {
   const [payload, setPayload] = (0, import_react.useState)(EMPTY), [info, setInfo] = (0, import_react.useState)(null), [ready, setReady] = (0, import_react.useState)(false), [status, setStatus] = (0, import_react.useState)("\u6B63\u5728\u8BFB\u53D6"), [error, setError] = (0, import_react.useState)("");
@@ -74130,7 +74138,7 @@ function useDiskState() {
     pending.current++;
     setStatus("\u6B63\u5728\u4FDD\u5B58");
     enqueue(async () => {
-      if (failed.current) return;
+      if (failed.current || version2 !== editVersion.current) return;
       try {
         const value = await request("PUT", { revision: revision.current, payload: { version: 1, data: payload.data }, history: payload.history });
         revision.current = value.revision;
